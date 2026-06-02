@@ -30,7 +30,7 @@ const StarRating: React.FC<{ rating: number; onChange?: (r: number) => void; siz
         <Star
           key={i}
           size={size}
-          fill={(hover || rating) >= i ? '#f59e0b' : 'none'}
+          fill={(hover || rating) >= i ? '#f59e0b' : 'transparent'}
           color={(hover || rating) >= i ? '#f59e0b' : 'rgba(255,255,255,0.3)'}
           style={{ cursor: onChange ? 'pointer' : 'default', transition: 'color 0.15s' }}
           onMouseEnter={() => onChange && setHover(i)}

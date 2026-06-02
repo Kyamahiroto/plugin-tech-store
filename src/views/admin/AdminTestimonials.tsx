@@ -171,7 +171,7 @@ const AdminTestimonials: React.FC<AdminTestimonialsProps> = ({ testimonials, onA
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>{t.date}</div>
                 <div style={{ display: 'flex', gap: '2px', color: '#fbbf24' }}>
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={12} fill={i < t.rating ? 'currentColor' : 'none'} />
+                    <Star key={i} size={12} fill={i < t.rating ? 'currentColor' : 'transparent'} />
                   ))}
                 </div>
                 <div style={{ fontSize: '0.85rem', marginTop: '8px', fontStyle: 'italic', maxWidth: '500px' }}>"{t.content}"</div>

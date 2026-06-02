@@ -233,7 +233,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   <Star 
                     key={i} 
                     size={16} 
-                    fill={avgRating >= i ? 'var(--color-primary)' : 'none'} 
+                    fill={avgRating >= i ? 'var(--color-primary)' : 'transparent'} 
                     color={avgRating >= i ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)'} 
                   />
                 );
@@ -493,7 +493,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                     </div>
                     <div style={{ display: 'flex', gap: '2px' }}>
                       {[1,2,3,4,5].map(i => (
-                        <Star key={i} size={14} fill={review.rating >= i ? '#f59e0b' : 'none'} color={review.rating >= i ? '#f59e0b' : 'rgba(255,255,255,0.3)'} />
+                        <Star key={i} size={14} fill={review.rating >= i ? '#f59e0b' : 'transparent'} color={review.rating >= i ? '#f59e0b' : 'rgba(255,255,255,0.3)'} />
                       ))}
                     </div>
                   </div>
@@ -535,7 +535,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                       <Star 
                         key={i} 
                         size={24} 
-                        fill={reviewForm.rating >= i ? '#f59e0b' : 'none'} 
+                        fill={reviewForm.rating >= i ? '#f59e0b' : 'transparent'} 
                         color={reviewForm.rating >= i ? '#f59e0b' : 'rgba(255,255,255,0.3)'}
                         style={{ cursor: 'pointer' }}
                         onClick={() => setReviewForm(prev => ({ ...prev, rating: i }))}

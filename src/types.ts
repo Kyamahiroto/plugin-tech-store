@@ -102,6 +102,7 @@ export interface UserProfile {
   password?: string;
   xp?: number;
   aliencoins?: number;
+  rank?: string;
   transactions?: GamificationTransaction[];
 }
 

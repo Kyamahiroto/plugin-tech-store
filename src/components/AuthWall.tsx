@@ -23,6 +23,10 @@ const AuthWall: React.FC<AuthWallProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
+  // Register verification states
+  const [isVerifyingRegister, setIsVerifyingRegister] = useState(false);
+  const [registerCode, setRegisterCode] = useState('');
+
   // Recovery states
   const [isRecovering, setIsRecovering] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState<RecoveryStep>('email');
@@ -142,7 +146,115 @@ const AuthWall: React.FC<AuthWallProps> = ({
     setLoading(false);
   };
 
-  // ---- MAIN LOGIN / REGISTER ----
+  // ---- REGISTER VERIFICATION ----
+  const handleSendRegisterCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearMessages();
+
+    if (!email || !password || !name) {
+      setErrorMsg('Preencha os campos obrigatórios (Nome, E-mail, Senha) terráqueo!');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg('Sua senha secreta deve ter pelo menos 6 caracteres holográficos.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:3001/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Erro ao comunicar com a nave central.');
+        setLoading(false);
+        return;
+      }
+      
+      setIsVerifyingRegister(true);
+      setSuccessMsg('Código enviado! Verifique sua caixa de entrada.');
+    } catch (err) {
+      setErrorMsg('Falha de conexão com a base. Servidor online?');
+    }
+    setLoading(false);
+  };
+
+  const handleVerifyRegisterCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearMessages();
+
+    if (!registerCode || registerCode.length < 6) {
+      setErrorMsg('Insira o código de 6 dígitos.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Verify code
+      const res = await fetch('http://localhost:3001/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: registerCode })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Código inválido.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Finalize Supabase Signup
+      const { data: supaData, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            species: 'gray',
+            homePlanet: 'Terra (Indefinido)',
+            dangerLevel: 'harmless',
+            walletBalance: 500, // They will get +100 XP from welcome email logic later
+            xp: 100 // Starting XP bonus
+          }
+        }
+      });
+
+      if (error) {
+        if (error.message.includes('already registered')) {
+          setErrorMsg('Este e-mail já foi abduzido anteriormente. Tente entrar na conta.');
+        } else {
+          setErrorMsg(`Anomalia no sistema: ${error.message}`);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // 3. Trigger Welcome Email
+      fetch('http://localhost:3001/api/auth/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name })
+      }).catch(err => console.error('Failed to trigger welcome email:', err));
+
+      if (supaData.session === null) {
+        setSuccessMsg('Abdução completa! Você precisará confirmar seu email via link do Supabase se exigido.');
+      } else {
+        if (onSuccess) onSuccess();
+      }
+
+    } catch (err) {
+      setErrorMsg('Falha na comunicação final com a nave mãe.');
+    }
+    setLoading(false);
+  };
+
+  // ---- MAIN LOGIN ----
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearMessages();
@@ -175,38 +287,6 @@ const AuthWall: React.FC<AuthWallProps> = ({
 
         if (onSuccess) onSuccess();
 
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name,
-              species: 'gray',
-              homePlanet: 'Terra (Indefinido)',
-              dangerLevel: 'harmless',
-              walletBalance: 500
-            }
-          }
-        });
-
-        if (error) {
-          if (error.message.includes('already registered')) {
-            setErrorMsg('Este e-mail já foi abduzido anteriormente. Tente entrar na conta.');
-          } else if (error.message.includes('Password should be')) {
-            setErrorMsg('Sua senha é muito fraca. Digite pelo menos 6 caracteres holográficos.');
-          } else {
-            setErrorMsg(`Anomalia no sistema: ${error.message}`);
-          }
-          setLoading(false);
-          return;
-        }
-
-        if (data.session === null) {
-          setSuccessMsg('Abdução quase completa! Enviamos um laser codificado para o seu e-mail. Verifique a caixa de entrada (ou lixo espacial) para confirmar a conta.');
-        } else {
-          if (onSuccess) onSuccess();
-        }
       }
     } catch {
       setErrorMsg('Falha de comunicação com a nave mãe. Tente novamente mais tarde.');
@@ -375,6 +455,44 @@ const AuthWall: React.FC<AuthWallProps> = ({
           <div style={{ width: '100%' }}>
             {renderRecovery()}
           </div>
+        ) : isVerifyingRegister ? (
+          // --- REGISTER OTP VERIFICATION ---
+          <div className="animate-fade-in" style={{ textAlign: 'center', width: '100%' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>👽</div>
+            <h3 className="neon-text" style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Autenticação Requerida</h3>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '24px' }}>
+              Enviamos um código de confirmação para <span style={{ color: 'var(--color-primary)' }}>{email}</span>. Insira-o abaixo para concluir o cadastro.
+            </p>
+
+            <form onSubmit={handleVerifyRegisterCode} className="auth-form">
+              <div className="form-group" style={{ textAlign: 'left' }}>
+                <label className="form-label">Código de Verificação (6 dígitos)</label>
+                <div className="input-with-icon">
+                  <KeyRound size={18} className="input-icon" />
+                  <input
+                    type="text"
+                    className="form-input otp-input"
+                    placeholder="000000"
+                    maxLength={6}
+                    value={registerCode}
+                    onChange={(e) => setRegisterCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    disabled={loading}
+                    style={{ letterSpacing: '0.5em', fontSize: '1.4rem', textAlign: 'center', paddingLeft: '14px' }}
+                  />
+                </div>
+              </div>
+
+              {errorMsg && <div className="auth-alert error animate-shake"><AlertTriangle size={16} /><span>{errorMsg}</span></div>}
+              {successMsg && <div className="auth-alert success animate-fade-in"><Sparkles size={16} /><span>{successMsg}</span></div>}
+
+              <button type="submit" className="neon-glow-btn auth-submit-btn" disabled={loading}>
+                {loading ? <Loader2 size={18} className="spin-anim" /> : 'CONCLUIR ABDUÇÃO 🛸'}
+              </button>
+              <button type="button" className="auth-back-btn" onClick={() => { setIsVerifyingRegister(false); clearMessages(); setRegisterCode(''); }}>
+                <ArrowLeft size={15} /> Voltar e alterar e-mail
+              </button>
+            </form>
+          </div>
         ) : (
           // --- LOGIN / REGISTER TABS ---
           <div className="animate-fade-in" style={{ width: '100%' }}>
@@ -393,7 +511,7 @@ const AuthWall: React.FC<AuthWallProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={isLogin ? handleSubmit : handleSendRegisterCode} className="auth-form">
               {!isLogin && (
                 <div className="form-group">
                   <label className="form-label">Nome Registrado na Galáxia</label>

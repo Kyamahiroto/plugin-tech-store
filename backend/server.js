@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const { Resend } = require('resend');
+const emailService = require('./services/emailService');
 require('dotenv').config();
 
 const app = express();
@@ -63,8 +64,8 @@ app.use(express.json({ limit: '1mb' }));
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || '' });
 const preference = new Preference(client);
 
-// Set up Resend Client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Set up Resend Client (Moved to emailService.js, keeping local for webhooks if needed)
+const resend = emailService.resend;
 
 // ========================================
 // ROUTES
@@ -165,7 +166,127 @@ app.use((err, req, res, next) => {
 });
 
 // ========================================
-// START SERVER
+// EMAIL FUNNEL & AUTH ROUTES
+// ========================================
+
+// Generate and send verification code
+app.post('/api/auth/send-code', emailLimiter, async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'E-mail obrigatório' });
+
+  // Generate 6-digit code
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  try {
+    // In a real scenario, you'd save this code to Supabase 'verification_codes' table here.
+    // For now, let's keep it simple or assume frontend validates it against a mock endpoint
+    await emailService.sendVerificationCode(email, code);
+    
+    // Simulating storing code temporarily (since we don't have db connection set up in server.js directly yet)
+    // You should use Supabase client here to insert into verification_codes.
+    res.json({ success: true, message: 'Código enviado com sucesso.', devCode: code }); // Passing devCode just for testing locally, remove in prod
+  } catch (error) {
+    console.error('Error sending code:', error);
+    res.status(500).json({ error: 'Erro ao enviar código de verificação' });
+  }
+});
+
+// Verify code endpoint
+app.post('/api/auth/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'E-mail e código são obrigatórios' });
+
+  // In a real scenario, verify against the 'verification_codes' table:
+  // const { data } = await supabase.from('verification_codes').select('*').eq('email', email).eq('code', code).single();
+  // if (!data) return error.
+  
+  // For now, we simulate success if the code is 6 digits. The frontend is responsible for the final Supabase Auth creation.
+  if (code.length === 6) {
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ error: 'Código inválido' });
+  }
+});
+
+// Welcome email endpoint
+app.post('/api/auth/welcome', async (req, res) => {
+  const { email, name } = req.body;
+  if (!email || !name) return res.status(400).json({ error: 'E-mail e nome são obrigatórios' });
+
+  try {
+    await emailService.sendWelcome(email, name);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Welcome email error:', error);
+    res.status(500).json({ error: 'Erro ao enviar e-mail de boas-vindas' });
+  }
+});
+
+// Gamification triggers
+app.post('/api/gamification/event', async (req, res) => {
+  const { email, type, data } = req.body;
+  if (!email || !type) return res.status(400).json({ error: 'Faltam parâmetros' });
+
+  try {
+    if (type === 'rank_up') {
+      await emailService.sendRankUp(email, data.newRank);
+    } else if (type === 'mission_completed') {
+      await emailService.sendMissionCompleted(email, data.missionName, data.reward);
+    }
+    // Handle others: xp_gained, aliencoins_received
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Gamification email error:', error);
+    res.status(500).json({ error: 'Erro ao disparar alerta de gamificação' });
+  }
+});
+
+// Order status change → triggers purchase funnel emails
+app.post('/api/orders/status-change', async (req, res) => {
+  const { email, orderId, newStatus, trackingCode } = req.body;
+  if (!email || !orderId || !newStatus) {
+    return res.status(400).json({ error: 'Faltam parâmetros (email, orderId, newStatus)' });
+  }
+
+  const order = { id: orderId };
+
+  try {
+    switch (newStatus) {
+      case 'received':
+        await emailService.sendOrderConfirmed(email, order);
+        break;
+      case 'processing':
+        await emailService.sendPaymentApproved(email, order);
+        break;
+      case 'warp_drive':
+        await emailService.sendOrderShipped(email, trackingCode || '');
+        break;
+      case 'delivered':
+        await emailService.sendDeliveryCompleted(email);
+        break;
+    }
+    res.json({ success: true, message: `Email de ${newStatus} enviado para ${email}` });
+  } catch (error) {
+    console.error('Order status email error:', error);
+    res.status(500).json({ error: 'Erro ao enviar e-mail de status do pedido' });
+  }
+});
+
+// CRON JOB ENDPOINT (Called hourly by Vercel Cron or cron-job.org)
+app.get('/api/cron/email-funnel', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET || 'secret'}`) {
+    return res.status(401).json({ error: 'Acesso negado' });
+  }
+
+  // TODO: Query Supabase carts where updated_at < 1 hour ago and abandonment_email_sent_1h is false
+  // await emailService.sendAbandonedCart1h(user.email);
+  
+  res.json({ success: true, message: 'Funil processado' });
+});
+
+// ========================================
+// SERVER STARTUP
 // ========================================
 
 const PORT = process.env.PORT || 3001;

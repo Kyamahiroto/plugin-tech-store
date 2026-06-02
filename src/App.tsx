@@ -3,6 +3,7 @@ import './App.css';
 import { Product, CartItem, Order, UserProfile, Category, Banner, StoreSettings, Testimonial, Brand, QuizConfig, SetupResult } from './types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_BANNERS, INITIAL_STORE_SETTINGS, INITIAL_TESTIMONIALS, INITIAL_BRANDS, INITIAL_PAYMENT_SETTINGS, INITIAL_QUIZ_CONFIG } from './mockData';
 import { supabase } from './lib/supabase';
+import { getRankByXP } from './utils/gamification';
 
 // Import Custom Views
 import HomeView from './views/HomeView';
@@ -265,6 +266,7 @@ function App() {
         // User is logged in, extract DNA metadata
         const metadata = session.user.user_metadata;
         setUserProfile({
+          email: session.user.email || '',
           name: metadata.name || session.user.email?.split('@')[0] || 'Visitante',
           species: metadata.species || 'gray',
           homePlanet: metadata.homePlanet || 'Planeta Desconhecido',
@@ -275,6 +277,7 @@ function App() {
       } else {
         // User logged out or no session
         setUserProfile({
+          email: '',
           name: '',
           species: 'gray',
           homePlanet: 'Retículo II (Setor Cósmico Z)',
@@ -347,7 +350,71 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('plugin_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+
+    // Sync cart with Supabase for abandoned cart emails
+    if (userProfile?.isRegistered && userProfile?.email) {
+      supabase.from('carts').upsert({
+        user_email: userProfile.email,
+        items: cartItems,
+        updated_at: new Date().toISOString(),
+        abandonment_email_sent_1h: false,
+        abandonment_email_sent_24h: false,
+        abandonment_email_sent_72h: false
+      }, { onConflict: 'user_email' })
+      .then(({ error }) => {
+        if (error) console.error('Error syncing cart:', error);
+      });
+    }
+  }, [cartItems, userProfile?.email, userProfile?.isRegistered]);
+
+  // Sync user profile to Supabase users table (for Gamification and Login Tracking)
+  useEffect(() => {
+    if (userProfile?.isRegistered && userProfile?.email) {
+      supabase.from('users').upsert({
+        email: userProfile.email,
+        name: userProfile.name,
+        xp: userProfile.xp || 0,
+        aliencoins: userProfile.aliencoins || 0,
+        rank: userProfile.rank || getRankByXP(userProfile.xp || 0).name,
+        last_login: new Date().toISOString()
+      }, { onConflict: 'email' })
+      .then(({ error }) => {
+        if (error) console.error('Error syncing user:', error);
+      });
+    }
+  }, [
+    userProfile?.email, 
+    userProfile?.isRegistered, 
+    userProfile?.xp, 
+    userProfile?.aliencoins, 
+    userProfile?.rank
+  ]);
+
+  // Monitor Rank Up and trigger email
+  useEffect(() => {
+    if (userProfile?.isRegistered && userProfile?.email) {
+      const currentRank = getRankByXP(userProfile.xp || 0).name;
+      const storedRank = userProfile.rank || 'Recruta';
+      
+      if (currentRank !== storedRank && (userProfile.xp || 0) > 0) {
+        // Update local rank
+        setUserProfile(prev => ({ ...prev, rank: currentRank }));
+
+        // Trigger rank up email
+        fetch('http://localhost:3001/api/gamification/event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email: userProfile.email, 
+            type: 'rank_up', 
+            data: { newRank: currentRank } 
+          })
+        }).catch(err => console.error('Rank up email error:', err));
+        
+        addToast(`🎉 Patente promovida para ${currentRank}!`, 'success');
+      }
+    }
+  }, [userProfile?.xp, userProfile?.email, userProfile?.isRegistered, userProfile?.rank]);
 
   useEffect(() => {
     localStorage.setItem('plugin_favorites', JSON.stringify(favorites));
@@ -527,7 +594,9 @@ function App() {
         total: newOrder.total,
         status: newOrder.status, // will be 'received'
         shipping_address: newOrder.shippingAddress,
-        shipping_fee: newOrder.shippingFee
+        shipping_fee: newOrder.shippingFee,
+        user_email: newOrder.userEmail || userProfile?.email || '',
+        user_name: newOrder.userName || userProfile?.name || ''
       }]);
       if (orderErr) throw orderErr;
 
@@ -541,6 +610,17 @@ function App() {
             .eq('id', item.product.id);
         }
       }
+
+      // 3. Trigger "Pedido Confirmado" email
+      const buyerEmail = newOrder.userEmail || userProfile?.email;
+      if (buyerEmail) {
+        fetch('http://localhost:3001/api/orders/status-change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: buyerEmail, orderId: newOrder.id, newStatus: 'received' })
+        }).catch(err => console.error('Order confirmation email error:', err));
+      }
+
       addToast('Pedido registrado com sucesso na nuvem! 🛸🌌', 'success');
     } catch (err) {
       console.warn('Erro ao salvar pedido no Supabase. Mantendo no cache local:', err);
@@ -550,12 +630,16 @@ function App() {
 
   const handleAdvanceOrderStatus = async (orderId: string) => {
     let nextStatus: Order['status'] = 'processing';
+    let orderEmail = '';
+    let orderTrackingCode = '';
     setOrders((prevOrders) =>
       prevOrders.map((ord) => {
         if (ord.id === orderId) {
           nextStatus = ord.status === 'received' ? 'processing' :
                        ord.status === 'processing' ? 'warp_drive' : 
                        ord.status === 'warp_drive' ? 'delivered' : 'delivered';
+          orderEmail = ord.userEmail || '';
+          orderTrackingCode = ord.trackingCode || '';
           return {
             ...ord,
             status: nextStatus
@@ -571,6 +655,15 @@ function App() {
         .eq('id', orderId);
       if (error) throw error;
       addToast(`Status do pedido ${orderId} atualizado na nuvem! 🛰️`, 'success');
+
+      // Trigger order status email
+      if (orderEmail) {
+        fetch('http://localhost:3001/api/orders/status-change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: orderEmail, orderId, newStatus: nextStatus, trackingCode: orderTrackingCode })
+        }).catch(err => console.error('Email trigger error:', err));
+      }
     } catch (err) {
       console.warn('Erro ao avançar status do pedido no Supabase:', err);
       addToast('Conectado ao cache local. Execute o script SQL no seu dashboard para sincronizar na nuvem! 🌐⚡', 'error');
@@ -578,8 +671,10 @@ function App() {
   };
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status'], trackingCode?: string) => {
+    let orderEmail = '';
     setOrders((prev) => prev.map(ord => {
       if (ord.id === orderId) {
+        orderEmail = ord.userEmail || '';
         return { ...ord, status: newStatus, trackingCode: trackingCode !== undefined ? trackingCode : ord.trackingCode };
       }
       return ord;
@@ -595,6 +690,15 @@ function App() {
         .eq('id', orderId);
       if (error) throw error;
       addToast(`Pedido ${orderId} atualizado!`, 'success');
+
+      // Trigger order status email
+      if (orderEmail) {
+        fetch('http://localhost:3001/api/orders/status-change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: orderEmail, orderId, newStatus, trackingCode: trackingCode || '' })
+        }).catch(err => console.error('Email trigger error:', err));
+      }
     } catch (err) {
       console.warn('Erro ao atualizar pedido:', err);
       addToast('Conectado ao cache local.', 'error');

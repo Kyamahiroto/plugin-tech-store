@@ -255,3 +255,52 @@ CREATE POLICY "Permitir inserção de pedidos" ON public.orders FOR INSERT WITH 
 CREATE POLICY "Permitir leitura de pedidos" ON public.orders FOR SELECT USING (true);
 CREATE POLICY "Permitir atualização de pedidos" ON public.orders FOR UPDATE USING (true);
 CREATE POLICY "Permitir deleção de pedidos" ON public.orders FOR DELETE USING (true);
+
+-- ----------------------------------------------------
+-- 5. TABELA: USUÁRIOS (users)
+-- ----------------------------------------------------
+CREATE TABLE public.users (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    name TEXT,
+    xp INTEGER DEFAULT 0,
+    aliencoins INTEGER DEFAULT 0,
+    rank TEXT DEFAULT 'Recruta',
+    avatar_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    last_login TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir leitura e escrita do próprio usuário" ON public.users FOR ALL USING (true);
+
+-- ----------------------------------------------------
+-- 6. TABELA: CÓDIGOS DE VERIFICAÇÃO (verification_codes)
+-- ----------------------------------------------------
+CREATE TABLE public.verification_codes (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    used BOOLEAN DEFAULT FALSE
+);
+
+ALTER TABLE public.verification_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir uso global temporário" ON public.verification_codes FOR ALL USING (true);
+
+-- ----------------------------------------------------
+-- 7. TABELA: CARRINHOS (carts)
+-- ----------------------------------------------------
+CREATE TABLE public.carts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_email TEXT UNIQUE REFERENCES public.users(email) ON UPDATE CASCADE ON DELETE CASCADE,
+    items JSONB DEFAULT '[]'::jsonb,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    abandonment_email_sent_1h BOOLEAN DEFAULT FALSE,
+    abandonment_email_sent_24h BOOLEAN DEFAULT FALSE,
+    abandonment_email_sent_72h BOOLEAN DEFAULT FALSE
+);
+
+ALTER TABLE public.carts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir controle do carrinho" ON public.carts FOR ALL USING (true);

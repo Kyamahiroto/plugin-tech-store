@@ -227,7 +227,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 const approvedReviews = reviews.filter(r => r.productId === product.id && r.status === 'approved');
                 const avgRating = approvedReviews.length > 0 
                   ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length 
-                  : 5;
+                  : 0;
                 
                 return (
                   <Star 

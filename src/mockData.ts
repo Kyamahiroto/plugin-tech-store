@@ -347,35 +347,7 @@ export const ALIEN_SPECIES = [
   }
 ];
 
-export const INITIAL_TESTIMONIALS = [
-  {
-    id: 't1',
-    authorName: 'Robson Henrique Paes de Ba...',
-    date: '29/03/2025',
-    content: 'Excelente profissional, atendimento de primeira, eu recomendo.',
-    rating: 5,
-    authorImage: 'https://i.pravatar.cc/150?u=a042581f4e29026024d',
-    productImage: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=200'
-  },
-  {
-    id: 't2',
-    authorName: 'Fagner Moura',
-    date: '03/12/2024',
-    content: 'Excelente prestação de serviço',
-    rating: 5,
-    authorImage: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    productImage: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=200'
-  },
-  {
-    id: 't3',
-    authorName: 'Willian Guilherme',
-    date: '20/09/2024',
-    content: 'Atende todas as expectativas',
-    rating: 5,
-    authorImage: 'https://i.pravatar.cc/150?u=a04258114e29026702d',
-    productImage: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&q=80&w=200'
-  }
-];
+
 
 export const INITIAL_BRANDS = [
   { id: 'b1', name: 'LG', imageUrl: 'https://logodownload.org/wp-content/uploads/2014/05/lg-logo-1.png' },

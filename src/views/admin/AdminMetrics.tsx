@@ -7,7 +7,7 @@ interface AdminMetricsProps {
   products: Product[];
 }
 
-const AdminMetrics: React.FC<AdminMetricsProps> = ({ orders, products }) => {
+const AdminMetrics: React.FC<AdminMetricsProps> = ({ orders }) => {
   const [timeRange, setTimeRange] = useState<'7' | '30' | 'all'>('all');
 
   // Filter orders by time
@@ -227,7 +227,7 @@ const AdminMetrics: React.FC<AdminMetricsProps> = ({ orders, products }) => {
           <h3 className="metrics-panel-title"><MapPin size={18} /> Principais Regiões (Cidades)</h3>
           {regionSales.length > 0 ? (
             <div className="metrics-bar-chart">
-              {regionSales.map(([city, data], idx) => {
+              {regionSales.map(([city, data]) => {
                 const maxOrders = regionSales[0][1].orders;
                 const percent = Math.max((data.orders / maxOrders) * 100, 5);
                 return (

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Product, Category, ProductType } from '../../types';
 import { Plus, Edit2, Trash2, X, Save, Package, Zap, Link } from 'lucide-react';
 import { fileToBase64 } from '../../utils/imageUpload';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 interface AdminProductsProps {
   products: Product[];
@@ -121,7 +121,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
                   <ReactQuill 
                     theme="snow" 
                     value={form.description || ''} 
-                    onChange={val => set('description', val)} 
+                    onChange={(val: string) => set('description', val)} 
                     style={{ height: '200px' }}
                   />
                 </div>

@@ -126,7 +126,8 @@ const HomeView: React.FC<HomeViewProps> = ({
   onSelectBanner,
   onSelectProduct,
   addToast,
-  onSelectCategoryClick
+  onSelectCategoryClick,
+  onOpenAddressModal
 }) => {
   const [mascotQuoteIndex, setMascotQuoteIndex] = useState(0);
   const [displayLocation, setDisplayLocation] = useState('Sintonizando sua base...');

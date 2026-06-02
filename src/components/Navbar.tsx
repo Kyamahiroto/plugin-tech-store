@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   sidebarOpen,
   setSidebarOpen,
-  dbConnected = false,
+
   favoritesCount = 0,
   onLogout,
   searchQuery = '',

@@ -67,7 +67,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddProduct, onUpdateProduct, onDeleteProduct,
   onUpdateBanners, onAddCategory, onUpdateCategory, onDeleteCategory,
   onAdvanceOrderStatus, onUpdateOrderStatus, addToast, onLogout,
-  storeSettings, paymentSettings, quizConfig, onUpdateStoreSettings, onUpdatePaymentSettings, onUpdateQuizConfig
+  storeSettings, paymentSettings, quizConfig, testimonials, onUpdateStoreSettings, onUpdatePaymentSettings, onUpdateQuizConfig, onUpdateTestimonials
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -89,7 +89,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
           <AdminTestimonials 
             testimonials={testimonials || []} 
             onAdd={(t) => onUpdateTestimonials?.([...(testimonials || []), t])} 
-            onUpdate={(t) => onUpdateTestimonials?.((testimonials || []).map(test => test.id === t.id ? t : test))}
+            onUpdate={(t: any) => onUpdateTestimonials?.((testimonials || []).map(test => test.id === t.id ? t : test))}
             onDelete={(id) => onUpdateTestimonials?.((testimonials || []).filter(test => test.id !== id))}
             addToast={addToast} 
           />

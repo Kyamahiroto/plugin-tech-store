@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Product, Category, QuizConfig, QuizAnswers, SetupResult } from '../types';
 import { generateSetupResult } from '../utils/quizEngine';
 import { ChevronLeft, ChevronRight, Rocket, X, Check } from 'lucide-react';

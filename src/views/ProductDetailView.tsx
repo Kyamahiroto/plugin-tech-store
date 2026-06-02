@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, Truck, Star, Zap, Play, ChevronLeft, X, CreditCard, MapPin } from 'lucide-react';
+import { Heart, Truck, Star, Zap, Play, ChevronLeft, X, CreditCard } from 'lucide-react';
 import { Product, PaymentSettings, UserProfile } from '../types';
 import { ProductImage } from './HomeView';
 import DOMPurify from 'dompurify';

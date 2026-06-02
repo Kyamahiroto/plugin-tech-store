@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { QuizConfig, QuizOption, QuizBudgetRange, QuizCharacter } from '../../types';
+import { QuizConfig } from '../../types';
 import { Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 
 interface AdminQuizConfigProps {

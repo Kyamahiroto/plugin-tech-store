@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Truck, Star, Zap, Play, ChevronLeft, X, CreditCard, MapPin } from 'lucide-react';
 import { Product, PaymentSettings, UserProfile } from '../types';
 import { ProductImage } from './HomeView';
+import DOMPurify from 'dompurify';
 
 interface ProductDetailViewProps {
   productId: string;
@@ -423,7 +424,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             <div className="product-description-content glass-panel" style={{ padding: '24px', flex: 3 }}>
               <div 
                 className="rich-description"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
                 style={{ 
                   color: 'var(--color-text-muted)', 
                   lineHeight: '1.8', 

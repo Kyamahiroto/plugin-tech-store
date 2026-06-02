@@ -160,6 +160,18 @@ export interface Testimonial {
   productImage?: string; // Imagem do produto enviado pelo cliente
 }
 
+export interface ProductReview {
+  id: string;
+  productId: string;
+  authorName: string;
+  authorEmail?: string;
+  authorImage?: string;
+  content: string;
+  rating: number; // 1-5
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export interface Brand {
   id: string;
   name: string;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Truck, Star, Zap, Play, ChevronLeft, X, CreditCard } from 'lucide-react';
-import { Product, PaymentSettings, UserProfile } from '../types';
+import { Product, PaymentSettings, UserProfile, ProductReview } from '../types';
 import { ProductImage } from './HomeView';
 import DOMPurify from 'dompurify';
 
@@ -16,6 +16,8 @@ interface ProductDetailViewProps {
   paymentSettings?: PaymentSettings;
   userProfile?: UserProfile;
   onOpenAddressModal?: () => void;
+  reviews?: ProductReview[];
+  onAddReview?: (r: ProductReview) => void;
 }
 
 // Alien funny phrases
@@ -43,13 +45,16 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   setCurrentView,
   paymentSettings,
   userProfile,
-  onOpenAddressModal
+  onOpenAddressModal,
+  reviews = [],
+  onAddReview
 }) => {
   const [addonChecked, setAddonChecked] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [showInstallments, setShowInstallments] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, content: '' });
   const [alienPhrase, setAlienPhrase] = useState(alienPhrases[0]);
   const alienRef = useRef<HTMLDivElement>(null);
 
@@ -216,15 +221,27 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           )}
 
           {/* Star review bar */}
-          <div className="detail-rating-row">
-            <div className="stars-wrapper">
-              <Star size={16} fill="var(--color-primary)" color="var(--color-primary)" />
-              <Star size={16} fill="var(--color-primary)" color="var(--color-primary)" />
-              <Star size={16} fill="var(--color-primary)" color="var(--color-primary)" />
-              <Star size={16} fill="var(--color-primary)" color="var(--color-primary)" />
-              <Star size={16} fill="var(--color-primary)" color="var(--color-primary)" />
+          <div className="detail-rating-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+            <div className="stars-wrapper" style={{ display: 'flex', gap: '2px' }}>
+              {[1, 2, 3, 4, 5].map(i => {
+                const approvedReviews = reviews.filter(r => r.productId === product.id && r.status === 'approved');
+                const avgRating = approvedReviews.length > 0 
+                  ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length 
+                  : 5;
+                
+                return (
+                  <Star 
+                    key={i} 
+                    size={16} 
+                    fill={avgRating >= i ? 'var(--color-primary)' : 'none'} 
+                    color={avgRating >= i ? 'var(--color-primary)' : 'rgba(255,255,255,0.3)'} 
+                  />
+                );
+              })}
             </div>
-            <span className="rating-count">(128 avaliações)</span>
+            <span className="rating-count" style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+              ({reviews.filter(r => r.productId === product.id && r.status === 'approved').length} avaliações)
+            </span>
           </div>
 
           {/* Variations selector */}
@@ -447,6 +464,114 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* ============================================== */}
+      {/* REVIEWS SECTION                               */}
+      {/* ============================================== */}
+      <div className="product-reviews-section" style={{ marginTop: '60px' }}>
+        <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '24px' }}>⭐ Avaliações de Clientes</h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          {/* Reviews List */}
+          <div className="reviews-list">
+            {reviews.filter(r => r.productId === product.id && r.status === 'approved').length > 0 ? (
+              reviews.filter(r => r.productId === product.id && r.status === 'approved').map(review => (
+                <div key={review.id} className="glass-panel" style={{ padding: '20px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {review.authorImage ? (
+                        <img src={review.authorImage} alt={review.authorName} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#000', fontSize: '1.1rem' }}>
+                          {review.authorName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>{review.authorName}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{new Date(review.date).toLocaleDateString('pt-BR')}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      {[1,2,3,4,5].map(i => (
+                        <Star key={i} size={14} fill={review.rating >= i ? '#f59e0b' : 'none'} color={review.rating >= i ? '#f59e0b' : 'rgba(255,255,255,0.3)'} />
+                      ))}
+                    </div>
+                  </div>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>"{review.content}"</p>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-muted)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 'var(--radius-lg)' }}>
+                Nenhuma avaliação para este produto ainda. Seja o primeiro a avaliar!
+              </div>
+            )}
+          </div>
+
+          {/* Review Form */}
+          <div className="review-form-container glass-panel" style={{ padding: '24px', height: 'fit-content' }}>
+            <h4 style={{ color: 'var(--color-primary)', marginBottom: '16px' }}>Deixe sua avaliação</h4>
+            
+            {userProfile?.isRegistered ? (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (onAddReview && reviewForm.content.trim()) {
+                  onAddReview({
+                    id: `rev-${Date.now()}`,
+                    productId: product.id,
+                    authorName: userProfile.name,
+                    authorImage: userProfile.avatarUrl,
+                    content: reviewForm.content,
+                    rating: reviewForm.rating,
+                    date: new Date().toISOString(),
+                    status: 'pending'
+                  });
+                  setReviewForm({ rating: 5, content: '' });
+                }
+              }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '8px', color: 'var(--color-text-muted)' }}>Sua nota</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[1,2,3,4,5].map(i => (
+                      <Star 
+                        key={i} 
+                        size={24} 
+                        fill={reviewForm.rating >= i ? '#f59e0b' : 'none'} 
+                        color={reviewForm.rating >= i ? '#f59e0b' : 'rgba(255,255,255,0.3)'}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setReviewForm(prev => ({ ...prev, rating: i }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '8px', color: 'var(--color-text-muted)' }}>Comentário</label>
+                  <textarea 
+                    className="cyber-input" 
+                    rows={4} 
+                    value={reviewForm.content}
+                    onChange={(e) => setReviewForm(prev => ({ ...prev, content: e.target.value }))}
+                    placeholder="O que achou do produto?"
+                    style={{ resize: 'vertical' }}
+                    required
+                  />
+                </div>
+                <button type="submit" className="neon-glow-btn" style={{ width: '100%', padding: '12px' }}>
+                  Enviar Avaliação
+                </button>
+              </form>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <p style={{ color: 'var(--color-text-muted)', marginBottom: '16px', fontSize: '0.9rem' }}>
+                  Você precisa estar logado na sua conta intergaláctica para deixar uma avaliação.
+                </p>
+                <button className="outline-btn" style={{ width: '100%' }} onClick={() => addToast('Vá para o Perfil para fazer login/cadastro.', 'error')}>
+                  Fazer Login
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Complete your Setup Section */}
       <div className="recommendations-section" style={{ marginTop: '60px' }}>

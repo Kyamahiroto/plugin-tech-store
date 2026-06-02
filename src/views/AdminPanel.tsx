@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Product, Category, Banner, Order } from '../types';
+import { Product, Category, Banner, Order, ProductReview } from '../types';
 import { LayoutDashboard, Package, Tag, Image, FolderOpen, ShoppingBag, CreditCard, LogOut, Menu, X, ShieldCheck, Star } from 'lucide-react';
 
 import AdminDashboard from './admin/AdminDashboard';
@@ -13,6 +13,7 @@ import AdminGamification from './admin/AdminGamification';
 import AdminQuizConfig from './admin/AdminQuizConfig';
 import AdminMetrics from './admin/AdminMetrics';
 import AdminTestimonials from './admin/AdminTestimonials';
+import AdminReviews from './admin/AdminReviews';
 import { fileToBase64 } from '../utils/imageUpload';
 
 interface AdminPanelProps {
@@ -39,11 +40,13 @@ interface AdminPanelProps {
   onUpdateBrands?: (b: import('../types').Brand[]) => void;
   onUpdatePaymentSettings?: (ps: import('../types').PaymentSettings) => void;
   onUpdateQuizConfig?: (config: import('../types').QuizConfig) => void;
+  reviews?: ProductReview[];
+  onUpdateReviews?: (reviews: ProductReview[]) => void;
   addToast: (msg: string, type?: 'success' | 'error') => void;
   onLogout: () => void;
 }
 
-type Tab = 'dashboard' | 'metrics' | 'products' | 'coupons' | 'banners' | 'categories' | 'orders' | 'payments' | 'gamification' | 'quiz' | 'testimonials' | 'settings';
+type Tab = 'dashboard' | 'metrics' | 'products' | 'coupons' | 'banners' | 'categories' | 'orders' | 'payments' | 'gamification' | 'quiz' | 'testimonials' | 'reviews' | 'settings';
 
 import { Activity, MessageSquare } from 'lucide-react';
 
@@ -59,7 +62,8 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'gamification', label: 'Gamificação', icon: <Star size={18} /> },
   { id: 'quiz', label: 'Quiz Setup', icon: <Package size={18} /> },
   { id: 'testimonials', label: 'Depoimentos', icon: <MessageSquare size={18} /> },
-  { id: 'settings', label: 'Config. Loja', icon: <ShieldCheck size={18} /> }, // Using ShieldCheck as icon for settings
+  { id: 'reviews', label: 'Avaliações', icon: <Star size={18} /> },
+  { id: 'settings', label: 'Config. Loja', icon: <ShieldCheck size={18} /> },
 ];
 
 const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -67,7 +71,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddProduct, onUpdateProduct, onDeleteProduct,
   onUpdateBanners, onAddCategory, onUpdateCategory, onDeleteCategory,
   onAdvanceOrderStatus, onUpdateOrderStatus, addToast, onLogout,
-  storeSettings, paymentSettings, quizConfig, testimonials, onUpdateStoreSettings, onUpdatePaymentSettings, onUpdateQuizConfig, onUpdateTestimonials
+  storeSettings, paymentSettings, quizConfig, testimonials, reviews, onUpdateStoreSettings, onUpdatePaymentSettings, onUpdateQuizConfig, onUpdateTestimonials, onUpdateReviews
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -92,6 +96,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             onUpdate={(t: any) => onUpdateTestimonials?.((testimonials || []).map(test => test.id === t.id ? t : test))}
             onDelete={(id) => onUpdateTestimonials?.((testimonials || []).filter(test => test.id !== id))}
             addToast={addToast} 
+          />
+        );
+      case 'reviews':
+        return (
+          <AdminReviews
+            reviews={reviews || []}
+            products={products}
+            onApprove={(id) => onUpdateReviews?.((reviews || []).map(r => r.id === id ? { ...r, status: 'approved' as const } : r))}
+            onReject={(id) => onUpdateReviews?.((reviews || []).map(r => r.id === id ? { ...r, status: 'rejected' as const } : r))}
+            onDelete={(id) => onUpdateReviews?.((reviews || []).filter(r => r.id !== id))}
+            onAdd={(r) => onUpdateReviews?.([...(reviews || []), r])}
+            addToast={addToast}
           />
         );
       case 'settings': 

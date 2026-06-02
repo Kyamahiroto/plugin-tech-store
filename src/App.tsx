@@ -103,6 +103,12 @@ function App() {
   // Quiz result state
   const [quizResult, setQuizResult] = useState<SetupResult | null>(null);
 
+  // Reviews state
+  const [reviews, setReviews] = useState<import('./types').ProductReview[]>(() => {
+    const saved = localStorage.getItem('plugin_reviews');
+    return saved ? JSON.parse(saved) : [];
+  });
+
 
   // Cart state
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -362,6 +368,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('plugin_testimonials', JSON.stringify(testimonials));
   }, [testimonials]);
+
+  useEffect(() => {
+    localStorage.setItem('plugin_reviews', JSON.stringify(reviews));
+  }, [reviews]);
 
   useEffect(() => {
     localStorage.setItem('plugin_brands', JSON.stringify(brands));
@@ -814,6 +824,11 @@ function App() {
             paymentSettings={paymentSettings}
             userProfile={userProfile}
             onOpenAddressModal={() => setShowAddressModal(true)}
+            reviews={reviews}
+            onAddReview={(review) => {
+              setReviews(prev => [...prev, review]);
+              addToast('✅ Sua avaliação foi enviada e está aguardando aprovação!', 'success');
+            }}
           />);
       case 'shop':
         return (
@@ -914,6 +929,10 @@ function App() {
           onUpdateTestimonials={(newTestimonials) => {
             setTestimonials(newTestimonials);
             localStorage.setItem('plugin_testimonials', JSON.stringify(newTestimonials));
+          }}
+          reviews={reviews}
+          onUpdateReviews={(newReviews) => {
+            setReviews(newReviews);
           }}
           onUpdateBrands={setBrands}
           onUpdatePaymentSettings={setPaymentSettings}

@@ -56,6 +56,7 @@ const getBaseTemplate = (title, content, btnText, btnLink) => `
       margin-bottom: 20px;
     }
     p {
+      color: #e0e0e0;
       line-height: 1.6;
       margin-bottom: 20px;
       font-size: 15px;
@@ -80,7 +81,7 @@ const getBaseTemplate = (title, content, btnText, btnLink) => `
       text-align: center;
       margin-top: 40px;
       font-size: 12px;
-      color: #666;
+      color: #a0a0a0;
     }
   </style>
 </head>
@@ -89,7 +90,7 @@ const getBaseTemplate = (title, content, btnText, btnLink) => `
     <div class="header">
       <div class="logo">PLUG-IN <span>TECH</span></div>
     </div>
-    <div class="box">
+    <div class="box" style="color: #e0e0e0;">
       <h1>${title}</h1>
       ${content}
       ${btnText && btnLink ? `
@@ -98,7 +99,7 @@ const getBaseTemplate = (title, content, btnText, btnLink) => `
       </div>
       ` : ''}
     </div>
-    <div class="footer">
+    <div class="footer" style="color: #a0a0a0;">
       Esta é uma transmissão oficial da nave-mãe. <br>
       © ${new Date().getFullYear()} Plug-in Tech Store. Todos os direitos intergalácticos reservados.
     </div>

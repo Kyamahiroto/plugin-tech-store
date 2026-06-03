@@ -2,7 +2,7 @@ const { Resend } = require('resend');
 
 // If running in development without a key, we log instead of throw so local tests don't crash hard
 const resend = new Resend(process.env.RESEND_API_KEY || 're_mock_key');
-const SENDER_EMAIL = 'Equipe Plug-in <onboarding@resend.dev>'; // TODO: Change to real domain when verified
+const SENDER_EMAIL = 'Equipe Plug-in <nao-responda@lojaplugin.store>';
 
 // =====================================
 // BASE HTML TEMPLATE

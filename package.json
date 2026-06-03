@@ -12,12 +12,19 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
+    "cors": "^2.8.6",
     "dompurify": "^3.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "lucide-react": "^1.17.0",
+    "mercadopago": "^3.1.0",
     "quill": "^2.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-quill-new": "^3.8.3"
+    "react-quill-new": "^3.8.3",
+    "resend": "^6.12.4"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.39.1",

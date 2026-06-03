@@ -41,6 +41,17 @@ const AuthWall: React.FC<AuthWallProps> = ({
 
   const clearMessages = () => { setErrorMsg(''); setSuccessMsg(''); };
 
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return 0;
+    let score = 0;
+    if (pwd.length >= 8) score += 1;
+    if (/[A-Z]/.test(pwd)) score += 1;
+    if (/[a-z]/.test(pwd)) score += 1;
+    if (/[0-9]/.test(pwd)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
+    return score; // 1 to 5
+  };
+
   // ---- STEP 1: Send OTP code to email ----
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,8 +168,8 @@ const AuthWall: React.FC<AuthWallProps> = ({
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg('Sua senha secreta deve ter pelo menos 6 caracteres holográficos.');
+    if (getPasswordStrength(password) < 4) {
+      setErrorMsg('Sua senha secreta é muito fraca! Use letras maiúsculas, minúsculas, números, caracteres especiais e no mínimo 8 caracteres.');
       return;
     }
 
@@ -558,6 +569,41 @@ const AuthWall: React.FC<AuthWallProps> = ({
                     disabled={loading}
                   />
                 </div>
+                {!isLogin && password.length > 0 && (() => {
+                  const strength = getPasswordStrength(password);
+                  let strengthLabel = 'Muito Fraca';
+                  let strengthColor = '#ef4444'; // Red
+                  
+                  if (strength === 2) { strengthLabel = 'Fraca'; strengthColor = '#f97316'; /* Orange */ }
+                  else if (strength === 3) { strengthLabel = 'Média'; strengthColor = '#eab308'; /* Yellow */ }
+                  else if (strength === 4) { strengthLabel = 'Forte'; strengthColor = 'var(--color-primary)'; }
+                  else if (strength === 5) { strengthLabel = 'Fortíssima'; strengthColor = '#10b981'; /* Green */ }
+
+                  return (
+                    <div className="animate-fade-in" style={{ marginTop: '12px' }}>
+                      <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                        {[1, 2, 3, 4, 5].map(level => (
+                          <div 
+                            key={level} 
+                            style={{ 
+                              height: '4px', 
+                              flex: 1, 
+                              backgroundColor: strength >= level ? strengthColor : 'rgba(255,255,255,0.1)',
+                              borderRadius: '2px',
+                              transition: 'background-color 0.3s ease'
+                            }} 
+                          />
+                        ))}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Nível de Segurança</span>
+                        <span style={{ fontWeight: 'bold', color: strengthColor }}>
+                          {strengthLabel}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {errorMsg && <div className="auth-alert error animate-shake"><AlertTriangle size={16} /><span>{errorMsg}</span></div>}

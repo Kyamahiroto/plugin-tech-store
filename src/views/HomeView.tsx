@@ -549,19 +549,7 @@ const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </div>
 
-      {/* Fun Alien Mascot Barbecue banner widget */}
-      <div className="mascot-widget" onClick={handleMascotClick} title="Clique para ouvir mais pérolas do nosso mascote!">
-        <div className="mascot-widget-avatar-box">
-          <img src="/mascots_barbecue.png" alt="Mascotes Churrasco" className="mascot-widget-avatar" />
-        </div>
-        <div className="mascot-widget-content">
-          <span className="mascot-widget-badge badge-neon">💬 Sabedoria Intergaláctica:</span>
-          <div className="mascot-widget-bubble">
-            "{FUNNY_MASCOT_QUOTES[mascotQuoteIndex]}"
-          </div>
-          <p className="mascot-widget-click-hint">👉 Clique no churrasco dos aliens para escutar outro conselho cósmico!</p>
-        </div>
-      </div>
+
 
     </div>
   );

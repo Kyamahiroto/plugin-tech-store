@@ -104,6 +104,12 @@ export interface UserProfile {
   aliencoins?: number;
   rank?: string;
   transactions?: GamificationTransaction[];
+  gamificationState?: {
+    lastLogin?: string;
+    loginStreak?: number;
+    completedTasks?: string[];
+    taskLimits?: Record<string, { count: number; date: string }>;
+  };
 }
 
 export interface GamificationTransaction {
@@ -119,10 +125,11 @@ export interface GamificationTask {
   id: string;
   title: string;
   description: string;
-  rewardType: 'xp' | 'coins';
-  rewardAmount: number;
+  rewardXP?: number;
+  rewardCoins?: number;
   isActive: boolean;
-  limit: 'once' | 'daily' | 'weekly' | 'unlimited';
+  limit: 'once' | 'daily' | 'weekly' | 'unlimited' | 'monthly';
+  maxPerDay?: number;
 }
 
 export type CouponType = 'percent' | 'fixed';

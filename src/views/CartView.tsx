@@ -3,7 +3,7 @@ import { CartItem, Order, UserProfile } from '../types';
 import { Trash2, Plus, Minus, ShieldAlert, Sparkles, Orbit, CreditCard, QrCode, Brain, ArrowLeft, Check } from 'lucide-react';
 import { ProductImage } from './HomeView';
 import AuthWall from '../components/AuthWall';
-import { calculateMaxAliencoinDiscount } from '../utils/gamification';
+import { calculateMaxAliencoinDiscount, getAliencoinPurchaseBonus } from '../utils/gamification';
 import { createMercadoPagoPreference } from '../utils/mercadoPago';
 import { sendEmail } from '../utils/email';
 
@@ -196,18 +196,46 @@ const CartView: React.FC<CartViewProps> = ({
 
     // Gamification & Wallet Updates (for telepathy/free)
     const nextWallet = (userProfile.walletBalance || 0) - (useWalletBalance ? maxWalletDiscount : 0);
-    const nextAliencoins = (userProfile.aliencoins || 0) - (useAliencoins ? maxAliencoins : 0);
-    const nextXp = (userProfile.xp || 0) + 150;
+    let currentCoins = (userProfile.aliencoins || 0) - (useAliencoins ? maxAliencoins : 0);
+    const currentXp = userProfile.xp || 0;
+
+    // Cálculo de Cashback
+    const baseCoins = Math.floor(totalBrl * 2); // 2 Aliencoins por R$1 gasto
+    const rankBonusPct = getAliencoinPurchaseBonus(currentXp);
+    const rankBonusCoins = Math.floor(baseCoins * rankBonusPct);
+    
+    let extraBonusCoins = 0;
+    if (totalBrl > 1000) extraBonusCoins = 500;
+    else if (totalBrl > 500) extraBonusCoins = 200;
+
+    // Verificar primeira compra
+    let firstPurchaseBonus = 0;
+    const completedTasks = userProfile.gamificationState?.completedTasks || [];
+    if (!completedTasks.includes('t-comp1')) {
+      firstPurchaseBonus = 300;
+      completedTasks.push('t-comp1');
+    }
+
+    const earnedCoins = baseCoins + rankBonusCoins + extraBonusCoins + firstPurchaseBonus;
+    currentCoins += earnedCoins;
+    
+    // Conceder um pouco de XP pela compra
+    const nextXp = currentXp + 150;
 
     onUpdateProfile({
       ...userProfile,
       walletBalance: nextWallet,
-      aliencoins: nextAliencoins,
-      xp: nextXp
+      aliencoins: currentCoins,
+      xp: nextXp,
+      gamificationState: {
+        ...userProfile.gamificationState,
+        completedTasks
+      }
     });
 
     if (useWalletBalance && maxWalletDiscount > 0) addToast(`-R$ ${maxWalletDiscount.toFixed(2)} da Carteira Digital aplicados!`, 'success');
     if (useAliencoins && maxAliencoins > 0) addToast(`-${maxAliencoins} Aliencoins aplicados! 🚀`, 'success');
+    if (earnedCoins > 0) addToast(`+${earnedCoins} Aliencoins recebidos de Cashback! 💰`, 'success');
 
     addToast('Pedido abduzido com sucesso! Rastreamento ativado. 🛸✨', 'success');
     setCurrentView('orders');
@@ -665,9 +693,6 @@ const CartView: React.FC<CartViewProps> = ({
             <div style={{ textAlign: 'right' }}>
               <span className="checkout-total-price">
                 R$ {totalBrl.toFixed(2).replace('.', ',')}
-              </span>
-              <span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--color-text-muted)', fontFamily: 'var(--font-display)', marginTop: '4px' }}>
-                ₵ {totalCredits.toFixed(1)} Créditos Galácticos
               </span>
             </div>
           </div>

@@ -393,13 +393,28 @@ export const INITIAL_TESTIMONIALS: import('./types').Testimonial[] = [
 ];
 
 export const INITIAL_GAMIFICATION_TASKS: import('./types').GamificationTask[] = [
-  { id: 't1', title: 'Cadastro na plataforma', description: 'Crie sua conta para acessar o ecossistema.', rewardType: 'xp', rewardAmount: 200, isActive: true, limit: 'once' },
-  { id: 't2', title: 'Primeira compra', description: 'Realize sua primeira aquisição de tecnologia.', rewardType: 'xp', rewardAmount: 500, isActive: true, limit: 'once' },
-  { id: 't3', title: 'Login diário', description: 'Sintonize nossos canais todos os dias.', rewardType: 'coins', rewardAmount: 10, isActive: true, limit: 'daily' },
-  { id: 't4', title: 'Avaliação de produto', description: 'Compartilhe sua sabedoria sobre os equipamentos.', rewardType: 'xp', rewardAmount: 100, isActive: true, limit: 'unlimited' },
-  { id: 't5', title: 'Indicar amigo', description: 'Traga um terráqueo para a nossa frota.', rewardType: 'coins', rewardAmount: 500, isActive: true, limit: 'unlimited' },
-  { id: 't6', title: 'Completar perfil', description: 'Atualize seus dados galácticos.', rewardType: 'xp', rewardAmount: 150, isActive: true, limit: 'once' },
-  { id: 't7', title: 'Compartilhar produto', description: 'Espalhe a palavra alienígena.', rewardType: 'coins', rewardAmount: 50, isActive: true, limit: 'weekly' }
+  // Iniciação
+  { id: 't-cad', title: 'Cadastro na plataforma', description: 'Crie sua conta para acessar o ecossistema.', rewardXP: 100, isActive: true, limit: 'once' },
+  { id: 't-perf', title: 'Completar perfil', description: 'Atualize seus dados galácticos.', rewardXP: 150, isActive: true, limit: 'once' },
+  { id: 't-foto', title: 'Adicionar foto/avatar', description: 'Mostre seu rosto alienígena.', rewardXP: 50, isActive: true, limit: 'once' },
+  // Atividade
+  { id: 't-comp1', title: 'Primeira compra', description: 'Realize sua primeira aquisição de tecnologia.', rewardCoins: 300, isActive: true, limit: 'once' },
+  { id: 't-log', title: 'Login diário', description: 'Sintonize nossos canais todos os dias.', rewardXP: 20, isActive: true, limit: 'daily', maxPerDay: 1 },
+  { id: 't-log7', title: 'Login semanal consecutivo', description: '7 dias diretos na nave.', rewardXP: 150, isActive: true, limit: 'weekly' },
+  { id: 't-log30', title: '30 dias ativos', description: 'Um mês inteiro abduzido.', rewardXP: 800, isActive: true, limit: 'monthly' },
+  // Interação
+  { id: 't-fav', title: 'Adicionar produto aos favoritos', description: 'Guarde o que você quer abduzir depois.', rewardXP: 15, isActive: true, limit: 'daily', maxPerDay: 5 },
+  { id: 't-share', title: 'Compartilhar produto', description: 'Espalhe a palavra alienígena.', rewardXP: 30, isActive: true, limit: 'daily', maxPerDay: 3 },
+  { id: 't-quiz', title: 'Usar quiz "Monte seu Setup"', description: 'Descubra seu equipamento ideal.', rewardXP: 100, isActive: true, limit: 'once' },
+  { id: 't-quiz-fin', title: 'Finalizar resultado do quiz', description: 'Veja o resultado da nossa IA alienígena.', rewardXP: 80, isActive: true, limit: 'once' },
+  { id: 't-view-setup', title: 'Visualizar setup recomendado', description: 'Explore as recomendações.', rewardXP: 20, isActive: true, limit: 'once' },
+  // Comunidade
+  { id: 't-aval', title: 'Avaliar produto', description: 'Compartilhe sua sabedoria (apenas compras confirmadas).', rewardXP: 100, rewardCoins: 50, isActive: true, limit: 'unlimited' },
+  { id: 't-foto-setup', title: 'Enviar foto do setup', description: 'Mostre sua base para a galáxia.', rewardXP: 250, isActive: true, limit: 'unlimited' },
+  { id: 't-curt', title: 'Receber curtidas no setup', description: 'Cada like conta (limite diário aplica).', rewardXP: 10, isActive: true, limit: 'unlimited' },
+  // Eventos
+  { id: 't-evt1', title: 'Participar de evento especial', description: 'Participe quando o portal abrir.', rewardXP: 200, isActive: true, limit: 'once' },
+  { id: 't-evt2', title: 'Missão semanal', description: 'Missão variável toda semana.', rewardXP: 300, isActive: true, limit: 'weekly' }
 ];
 
 export const INITIAL_PAYMENT_SETTINGS: import('./types').PaymentSettings = {

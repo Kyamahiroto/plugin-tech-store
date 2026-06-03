@@ -431,7 +431,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {INITIAL_GAMIFICATION_TASKS.filter(t => t.isActive).map(task => {
-                const isCompleted = task.limit === 'once' && (userProfile.xp || 0) > task.rewardAmount;
+                const isCompleted = task.limit === 'once' && userProfile.gamificationState?.completedTasks?.includes(task.id);
                 return (
                   <div 
                     key={task.id} 
@@ -442,7 +442,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       borderRadius: 'var(--radius-md)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '12px'
+                      gap: '12px',
+                      opacity: isCompleted ? 0.7 : 1
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -454,23 +455,41 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           {task.description}
                         </p>
                       </div>
-                      <div style={{ 
-                        padding: '6px 10px', 
-                        backgroundColor: task.rewardType === 'xp' ? 'rgba(69, 230, 39, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                        color: task.rewardType === 'xp' ? '#45e627' : '#f59e0b',
-                        border: `1px solid ${task.rewardType === 'xp' ? 'rgba(69, 230, 39, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.85rem',
-                        fontWeight: 800,
-                        whiteSpace: 'nowrap'
-                      }}>
-                        + {task.rewardAmount} {task.rewardType === 'xp' ? 'XP' : 'AC'}
+                      <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        {task.rewardXP && (
+                          <div style={{ 
+                            padding: '4px 8px', 
+                            backgroundColor: 'rgba(69, 230, 39, 0.1)',
+                            color: '#45e627',
+                            border: '1px solid rgba(69, 230, 39, 0.3)',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            whiteSpace: 'nowrap'
+                          }}>
+                            + {task.rewardXP} XP
+                          </div>
+                        )}
+                        {task.rewardCoins && (
+                          <div style={{ 
+                            padding: '4px 8px', 
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            color: '#f59e0b',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            whiteSpace: 'nowrap'
+                          }}>
+                            + {task.rewardCoins} AC
+                          </div>
+                        )}
                       </div>
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', marginTop: '4px' }}>
                       <span style={{ color: 'var(--color-text-muted)' }}>
-                        Frequência: {task.limit === 'once' ? 'Única' : task.limit === 'daily' ? 'Diária' : task.limit === 'weekly' ? 'Semanal' : 'Ilimitada / Repetível'}
+                        Frequência: {task.limit === 'once' ? 'Única' : task.limit === 'daily' ? `Diária ${task.maxPerDay ? `(Máx ${task.maxPerDay}x)` : ''}` : task.limit === 'weekly' ? 'Semanal' : task.limit === 'monthly' ? 'Mensal' : 'Ilimitada'}
                       </span>
                       {isCompleted && task.limit === 'once' ? (
                         <span style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>✓ Concluída</span>
@@ -482,22 +501,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                 );
               })}
             </div>
-
-            {/* Avatar file input hidden */}
-            <input 
-              type="file" 
-              id="custom-avatar-file-input" 
-              style={{ display: 'none' }} 
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const base64 = await fileToBase64(file);
-                  onUpdateProfile({ ...userProfile, species: 'custom', avatarUrl: base64 });
-                  addToast('Holograma atualizado com sucesso!', 'success');
-                }
-              }}
-            />
 
           </div>
         </div>
@@ -642,6 +645,22 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       )}
         </>
       )}
+
+      {/* Avatar file input hidden */}
+      <input 
+        type="file" 
+        id="custom-avatar-file-input" 
+        style={{ display: 'none' }} 
+        accept="image/*"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            const base64 = await fileToBase64(file);
+            onUpdateProfile({ ...userProfile, species: 'custom', avatarUrl: base64 });
+            addToast('Holograma atualizado com sucesso!', 'success');
+          }
+        }}
+      />
     </div>
   );
 };

@@ -266,15 +266,20 @@ function App() {
       if (session?.user) {
         // User is logged in, extract DNA metadata
         const metadata = session.user.user_metadata;
-        setUserProfile({
+        setUserProfile(prev => ({
+          ...prev,
           email: session.user.email || '',
           name: metadata.name || session.user.email?.split('@')[0] || 'Visitante',
           species: metadata.species || 'gray',
           homePlanet: metadata.homePlanet || 'Planeta Desconhecido',
           dangerLevel: metadata.dangerLevel || 'harmless',
           walletBalance: metadata.walletBalance || 0,
+          xp: metadata.xp || prev.xp || 0,
+          aliencoins: metadata.aliencoins || prev.aliencoins || 0,
+          rank: metadata.rank || prev.rank,
+          gamificationState: metadata.gamificationState || prev.gamificationState || { completedTasks: [] },
           isRegistered: true
-        });
+        }));
       } else {
         // User logged out or no session
         setUserProfile({
@@ -284,6 +289,9 @@ function App() {
           homePlanet: 'Retículo II (Setor Cósmico Z)',
           dangerLevel: 'medium',
           walletBalance: 15000,
+          xp: 0,
+          aliencoins: 0,
+          gamificationState: { completedTasks: [] },
           isRegistered: false
         });
       }
@@ -293,6 +301,74 @@ function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Gamification: Daily Login Logic
+  useEffect(() => {
+    if (userProfile?.isRegistered && userProfile?.email && userProfile.gamificationState) {
+      const todayDate = new Date().toISOString().split('T')[0];
+      const gState = userProfile.gamificationState;
+      const lastLogin = gState.lastLogin;
+
+      if (lastLogin !== todayDate) {
+        let loginStreak = gState.loginStreak || 0;
+        
+        if (lastLogin) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayDate = yesterday.toISOString().split('T')[0];
+          
+          if (lastLogin === yesterdayDate) {
+            loginStreak += 1;
+          } else {
+            loginStreak = 1;
+          }
+        } else {
+          loginStreak = 1;
+        }
+
+        // Clean old daily limits
+        const newTaskLimits = { ...gState.taskLimits };
+        for (const taskId in newTaskLimits) {
+          if (newTaskLimits[taskId].date !== todayDate) {
+            delete newTaskLimits[taskId];
+          }
+        }
+
+        let extraXp = 0;
+        const completedTasks = [...(gState.completedTasks || [])];
+        if (loginStreak >= 7 && !completedTasks.includes('t-log7')) {
+          extraXp += 150;
+          completedTasks.push('t-log7');
+        }
+        if (loginStreak >= 30 && !completedTasks.includes('t-log30')) {
+          extraXp += 800;
+          completedTasks.push('t-log30');
+        }
+
+        // Increment task count for 't-log' (Daily Login task visual)
+        if (!newTaskLimits['t-log']) newTaskLimits['t-log'] = { count: 0, date: todayDate };
+        if (newTaskLimits['t-log'].count < 1) {
+           newTaskLimits['t-log'].count += 1;
+           extraXp += 20; // 20 XP for daily
+        }
+
+        setUserProfile(prev => ({
+          ...prev,
+          xp: (prev.xp || 0) + extraXp,
+          gamificationState: {
+            ...gState,
+            lastLogin: todayDate,
+            loginStreak,
+            completedTasks,
+            taskLimits: newTaskLimits
+          }
+        }));
+
+        if (extraXp >= 20) addToast(`Bônus Diário: +20 XP! Frequência: ${loginStreak} dias.`, 'success');
+        if (extraXp > 20) addToast(`Missão de Frequência concluída: +${extraXp - 20} XP!`, 'success');
+      }
+    }
+  }, [userProfile?.isRegistered, userProfile?.email, userProfile?.gamificationState?.lastLogin]);
 
   // Admin Auto-Refresh for Orders
   useEffect(() => {
@@ -377,7 +453,8 @@ function App() {
         xp: userProfile.xp || 0,
         aliencoins: userProfile.aliencoins || 0,
         rank: userProfile.rank || getRankByXP(userProfile.xp || 0).name,
-        last_login: new Date().toISOString()
+        last_login: new Date().toISOString(),
+        gamification_state: userProfile.gamificationState || { completedTasks: [] }
       }, { onConflict: 'email' })
       .then(({ error }) => {
         if (error) console.error('Error syncing user:', error);
@@ -388,7 +465,8 @@ function App() {
     userProfile?.isRegistered, 
     userProfile?.xp, 
     userProfile?.aliencoins, 
-    userProfile?.rank
+    userProfile?.rank,
+    userProfile?.gamificationState
   ]);
 
   // Monitor Rank Up and trigger email

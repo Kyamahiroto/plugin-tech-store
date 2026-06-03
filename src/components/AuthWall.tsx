@@ -163,7 +163,8 @@ const AuthWall: React.FC<AuthWallProps> = ({
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/auth/send-code', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${API_URL}/api/auth/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -196,7 +197,8 @@ const AuthWall: React.FC<AuthWallProps> = ({
     setLoading(true);
     try {
       // 1. Verify code
-      const res = await fetch('http://localhost:3001/api/auth/verify-code', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${API_URL}/api/auth/verify-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: registerCode })
@@ -236,7 +238,8 @@ const AuthWall: React.FC<AuthWallProps> = ({
       }
 
       // 3. Trigger Welcome Email
-      fetch('http://localhost:3001/api/auth/welcome', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      fetch(`${API_URL}/api/auth/welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name })

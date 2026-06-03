@@ -401,7 +401,8 @@ function App() {
         setUserProfile(prev => ({ ...prev, rank: currentRank }));
 
         // Trigger rank up email
-        fetch('http://localhost:3001/api/gamification/event', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        fetch(`${API_URL}/api/gamification/event`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -614,7 +615,8 @@ function App() {
       // 3. Trigger "Pedido Confirmado" email
       const buyerEmail = newOrder.userEmail || userProfile?.email;
       if (buyerEmail) {
-        fetch('http://localhost:3001/api/orders/status-change', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        fetch(`${API_URL}/api/orders/status-change`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: buyerEmail, orderId: newOrder.id, newStatus: 'received' })
@@ -658,7 +660,8 @@ function App() {
 
       // Trigger order status email
       if (orderEmail) {
-        fetch('http://localhost:3001/api/orders/status-change', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        fetch(`${API_URL}/api/orders/status-change`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: orderEmail, orderId, newStatus: nextStatus, trackingCode: orderTrackingCode })
@@ -693,7 +696,8 @@ function App() {
 
       // Trigger order status email
       if (orderEmail) {
-        fetch('http://localhost:3001/api/orders/status-change', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        fetch(`${API_URL}/api/orders/status-change`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: orderEmail, orderId, newStatus, trackingCode: trackingCode || '' })

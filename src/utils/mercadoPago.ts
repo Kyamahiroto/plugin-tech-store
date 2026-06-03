@@ -59,7 +59,8 @@ export const createMercadoPagoPreference = async (
   };
 
   try {
-    const response = await fetch('http://localhost:3001/api/create-preference', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const response = await fetch(`${API_URL}/api/create-preference`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -25,10 +25,15 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
+    // Allow Vercel preview URLs automatically
+    if (origin && origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
-    return callback(new Error('Bloqueado pela política CORS do servidor cósmico.'), false);
+    // Instead of throwing an error that causes a 500, we pass false so CORS headers are not set
+    return callback(null, false);
   },
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
@@ -178,16 +183,20 @@ app.post('/api/auth/send-code', emailLimiter, async (req, res) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   
   try {
-    // In a real scenario, you'd save this code to Supabase 'verification_codes' table here.
-    // For now, let's keep it simple or assume frontend validates it against a mock endpoint
-    await emailService.sendVerificationCode(email, code);
+    const response = await emailService.sendVerificationCode(email, code);
     
-    // Simulating storing code temporarily (since we don't have db connection set up in server.js directly yet)
-    // You should use Supabase client here to insert into verification_codes.
+    // Check if Resend returned an error object (Resend SDK v3 behavior)
+    if (response && response.error) {
+      console.error('Resend API Error:', response.error);
+      return res.status(500).json({ 
+        error: `Erro no Resend: ${response.error.message || 'Falha ao enviar email.'}` 
+      });
+    }
+
     res.json({ success: true, message: 'Código enviado com sucesso.', devCode: code }); // Passing devCode just for testing locally, remove in prod
   } catch (error) {
-    console.error('Error sending code:', error);
-    res.status(500).json({ error: 'Erro ao enviar código de verificação' });
+    console.error('Error sending code exception:', error);
+    res.status(500).json({ error: error.message || 'Erro ao enviar código de verificação' });
   }
 });
 

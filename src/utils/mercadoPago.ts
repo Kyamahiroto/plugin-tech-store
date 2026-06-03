@@ -1,4 +1,5 @@
 import { CartItem } from '../types';
+import { API_URL } from './api';
 
 export const createMercadoPagoPreference = async (
   cartItems: CartItem[], 
@@ -59,7 +60,6 @@ export const createMercadoPagoPreference = async (
   };
 
   try {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
     const response = await fetch(`${API_URL}/api/create-preference`, {
       method: 'POST',
       headers: {

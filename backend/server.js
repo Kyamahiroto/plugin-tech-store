@@ -286,10 +286,17 @@ app.get('/api/cron/email-funnel', async (req, res) => {
 });
 
 // ========================================
-// SERVER STARTUP
+// SERVER STARTUP (local dev only)
 // ========================================
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Backend cósmico escutando na porta ${PORT}`);
-});
+
+// Only call app.listen when running directly (local dev)
+// When imported by Vercel, we just export the app
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend cósmico escutando na porta ${PORT}`);
+  });
+}
+
+module.exports = app;

@@ -4,6 +4,7 @@ import { Product, CartItem, Order, UserProfile, Category, Banner, StoreSettings,
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_BANNERS, INITIAL_STORE_SETTINGS, INITIAL_TESTIMONIALS, INITIAL_BRANDS, INITIAL_PAYMENT_SETTINGS, INITIAL_QUIZ_CONFIG } from './mockData';
 import { supabase } from './lib/supabase';
 import { getRankByXP } from './utils/gamification';
+import { API_URL } from './utils/api';
 
 // Import Custom Views
 import HomeView from './views/HomeView';
@@ -401,7 +402,6 @@ function App() {
         setUserProfile(prev => ({ ...prev, rank: currentRank }));
 
         // Trigger rank up email
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         fetch(`${API_URL}/api/gamification/event`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -615,7 +615,6 @@ function App() {
       // 3. Trigger "Pedido Confirmado" email
       const buyerEmail = newOrder.userEmail || userProfile?.email;
       if (buyerEmail) {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         fetch(`${API_URL}/api/orders/status-change`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -660,7 +659,6 @@ function App() {
 
       // Trigger order status email
       if (orderEmail) {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         fetch(`${API_URL}/api/orders/status-change`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -696,7 +694,6 @@ function App() {
 
       // Trigger order status email
       if (orderEmail) {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         fetch(`${API_URL}/api/orders/status-change`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

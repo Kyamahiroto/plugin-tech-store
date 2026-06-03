@@ -1,6 +1,7 @@
+import { API_URL } from './api';
+
 export const sendEmail = async (to: string, subject: string, html: string) => {
   try {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
     const response = await fetch(`${API_URL}/api/send-email`, {
       method: 'POST',
       headers: {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, User, Sparkles, AlertTriangle, Loader2, KeyRound, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { API_URL } from '../utils/api';
 
 interface AuthWallProps {
   title?: string;
@@ -163,7 +164,6 @@ const AuthWall: React.FC<AuthWallProps> = ({
 
     setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const res = await fetch(`${API_URL}/api/auth/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -197,7 +197,6 @@ const AuthWall: React.FC<AuthWallProps> = ({
     setLoading(true);
     try {
       // 1. Verify code
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const res = await fetch(`${API_URL}/api/auth/verify-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -238,7 +237,6 @@ const AuthWall: React.FC<AuthWallProps> = ({
       }
 
       // 3. Trigger Welcome Email
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       fetch(`${API_URL}/api/auth/welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

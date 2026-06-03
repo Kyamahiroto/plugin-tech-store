@@ -148,7 +148,7 @@ const sendWelcome = async (email, name) => {
   return resend.emails.send({
     from: SENDER_EMAIL,
     to: email,
-    subject: \`Bem-vindo à tripulação, \${name} 👽\`,
+    subject: `Bem-vindo à tripulação, ${name} 👽`,
     html: getBaseTemplate('Missão Inicial Concluída', content, 'Completar Meu Perfil', 'https://lojaplugin.store/profile')
   });
 };
@@ -186,7 +186,7 @@ const sendPaymentApproved = async (email, order) => {
 const sendOrderShipped = async (email, trackingCode) => {
   const content = `
     <p>Sua encomenda foi injetada no hiperespaço e já está viajando pela galáxia rumo à Terra.</p>
-    ${trackingCode ? \`<p>Código de rastreio: <strong>\${trackingCode}</strong></p>\` : ''}
+    ${trackingCode ? `<p>Código de rastreio: <strong>${trackingCode}</strong></p>` : ''}
   `;
   return resend.emails.send({
     from: SENDER_EMAIL,
@@ -208,7 +208,7 @@ const sendRankUp = async (email, newRank) => {
   return resend.emails.send({
     from: SENDER_EMAIL,
     to: email,
-    subject: \`⭐ Você acaba de se tornar um \${newRank}\`,
+    subject: `⭐ Você acaba de se tornar um ${newRank}`,
     html: getBaseTemplate('Promoção Confirmada', content, 'Ver Benefícios', 'https://lojaplugin.store/profile')
   });
 };

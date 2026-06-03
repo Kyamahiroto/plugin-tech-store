@@ -90,7 +90,6 @@ const CartView: React.FC<CartViewProps> = ({
   const walletDiscountBrl = useWalletBalance ? maxWalletDiscount : 0;
   
   const totalBrl = baseTotalBrl - aliencoinDiscountBrl - walletDiscountBrl;
-  const totalCredits = totalBrl * 2.5; // Comical conversion rate
 
   const handleNextStep = () => {
     if (checkoutStep === 1) {

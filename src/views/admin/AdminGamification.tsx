@@ -15,8 +15,12 @@ const AdminGamification: React.FC<AdminGamificationProps> = ({ addToast }) => {
     addToast('Status da missão atualizado.', 'success');
   };
 
-  const handleUpdateReward = (id: string, amount: number) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, rewardAmount: amount } : t));
+  const handleUpdateRewardXP = (id: string, amount: number) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, rewardXP: amount } : t));
+  };
+
+  const handleUpdateRewardCoins = (id: string, amount: number) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, rewardCoins: amount } : t));
   };
 
   const handleSave = () => {
@@ -68,25 +72,32 @@ const AdminGamification: React.FC<AdminGamificationProps> = ({ addToast }) => {
               {task.description}
             </p>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <div style={{ flex: 1 }}>
-                <label className="cyber-label" style={{ fontSize: '0.7rem' }}>Recompensa</label>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label className="cyber-label" style={{ fontSize: '0.7rem' }}>Recompensas</label>
+                
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {task.rewardType === 'xp' ? (
-                    <Star size={16} color="#45e627" />
-                  ) : (
-                    <Zap size={16} color="#f59e0b" />
-                  )}
+                  <Star size={16} color="#45e627" />
                   <input 
                     type="number" 
                     className="cyber-input" 
-                    value={task.rewardAmount}
-                    onChange={(e) => handleUpdateReward(task.id, parseInt(e.target.value) || 0)}
-                    style={{ padding: '4px 8px', height: '30px', fontSize: '0.85rem' }}
+                    value={task.rewardXP || 0}
+                    onChange={(e) => handleUpdateRewardXP(task.id, parseInt(e.target.value) || 0)}
+                    style={{ padding: '4px 8px', height: '30px', fontSize: '0.85rem', width: '80px' }}
                   />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: task.rewardType === 'xp' ? '#45e627' : '#f59e0b' }}>
-                    {task.rewardType === 'xp' ? 'XP' : 'AC'}
-                  </span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#45e627' }}>XP</span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Zap size={16} color="#f59e0b" />
+                  <input 
+                    type="number" 
+                    className="cyber-input" 
+                    value={task.rewardCoins || 0}
+                    onChange={(e) => handleUpdateRewardCoins(task.id, parseInt(e.target.value) || 0)}
+                    style={{ padding: '4px 8px', height: '30px', fontSize: '0.85rem', width: '80px' }}
+                  />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#f59e0b' }}>AC</span>
                 </div>
               </div>
               <div>

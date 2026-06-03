@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const { Resend } = require('resend');
-const emailService = require('./services/emailService');
+const emailService = require('./services/emailService.cjs');
 require('dotenv').config();
 
 const app = express();

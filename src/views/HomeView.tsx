@@ -232,13 +232,22 @@ const HomeView: React.FC<HomeViewProps> = ({
               <span className="product-price">R$ {product.price.toFixed(2).replace('.', ',')}</span>
               {product.oldPrice && <span className="product-old-price">R$ {product.oldPrice.toFixed(2).replace('.', ',')}</span>}
             </div>
-            <div className="pix-discount-badge">
-              <span className="pix-badge-icon">⚡</span>
-              <span>PIX com <strong>5% OFF</strong> = R$ {(product.price * 0.95).toFixed(2).replace('.', ',')}</span>
-            </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-              💳 Em até <strong style={{ color: '#fff' }}>12x</strong> de <strong style={{ color: '#fff' }}>R$ {(product.price / 12).toFixed(2).replace('.', ',')}</strong>
-            </div>
+            {product.type === 'afiliado' ? (
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '8px', lineHeight: 1.4, backgroundColor: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '4px' }}>
+                <span style={{ color: 'var(--color-warning)' }}>Vendido por Parceiro</span><br/>
+                Pagamento e descontos aplicados no checkout.
+              </div>
+            ) : (
+              <>
+                <div className="pix-discount-badge">
+                  <span className="pix-badge-icon">⚡</span>
+                  <span>PIX com <strong>5% OFF</strong> = R$ {(product.price * 0.95).toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                  💳 Em até <strong style={{ color: '#fff' }}>12x</strong> de <strong style={{ color: '#fff' }}>R$ {(product.price / 12).toFixed(2).replace('.', ',')}</strong>
+                </div>
+              </>
+            )}
           </div>
 
           <button className="outline-btn product-add-btn" onClick={() => onAddToCart(product)}>

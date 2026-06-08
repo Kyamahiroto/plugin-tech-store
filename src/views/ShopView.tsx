@@ -274,13 +274,22 @@ const ShopView: React.FC<ShopViewProps> = ({
                             </span>
                           )}
                         </div>
-                        <div className="pix-discount-badge">
-                          <span className="pix-badge-icon">⚡</span>
-                          <span>PIX com <strong>5% OFF</strong> = R$ {(product.price * 0.95).toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                          💳 Em até <strong style={{ color: '#fff' }}>12x</strong> de <strong style={{ color: '#fff' }}>R$ {(product.price / 12).toFixed(2).replace('.', ',')}</strong>
-                        </div>
+                        {product.type === 'afiliado' ? (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '8px', lineHeight: 1.5, backgroundColor: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '6px', borderLeft: '2px solid var(--color-warning)' }}>
+                            <span style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>🤝 Vendido por parceiro</span><br/>
+                            Condições de pagamento e descontos definidas pelo vendedor no checkout.
+                          </div>
+                        ) : (
+                          <>
+                            <div className="pix-discount-badge">
+                              <span className="pix-badge-icon">⚡</span>
+                              <span>PIX com <strong>5% OFF</strong> = R$ {(product.price * 0.95).toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                              💳 Em até <strong style={{ color: '#fff' }}>12x</strong> de <strong style={{ color: '#fff' }}>R$ {(product.price / 12).toFixed(2).replace('.', ',')}</strong>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <button

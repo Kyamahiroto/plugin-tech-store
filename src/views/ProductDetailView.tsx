@@ -289,30 +289,48 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 <span className="detail-discount-badge">{product.discount}% OFF</span>
               )}
             </div>
-            <div className="detail-installments">
-              ou {productMaxInstallments}x de R$ {(currentPrice / productMaxInstallments).toFixed(2).replace('.', ',')} sem juros
-            </div>
-            <button
-              onClick={() => setShowInstallments(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-primary)',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                textDecoration: 'underline',
-                padding: '4px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <CreditCard size={14} /> Ver todas as parcelas
-            </button>
-            <div className="detail-pix-line">
-              <span>⚡</span>
-              <span>No PIX: <strong style={{ color: 'var(--color-primary)' }}>R$ {(currentPrice * 0.95).toFixed(2).replace('.', ',')}</strong> <small>(5% de desconto)</small></span>
-            </div>
+            {product.type === 'afiliado' ? (
+              <div style={{
+                marginTop: '12px',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(255,255,255,0.03)',
+                borderLeft: '3px solid var(--color-warning)',
+                borderRadius: '0 8px 8px 0',
+                lineHeight: 1.6
+              }}>
+                <div style={{ color: 'var(--color-warning)', fontWeight: 'bold', marginBottom: '4px' }}>🤝 Produto vendido pelo Mercado Livre</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                  Ao clicar em <strong style={{ color: '#fff' }}>Comprar Agora</strong>, você será redirecionado para a página do vendedor parceiro. Parcelamento, descontos e forma de pagamento são gerenciados diretamente por eles.
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="detail-installments">
+                  ou {productMaxInstallments}x de R$ {(currentPrice / productMaxInstallments).toFixed(2).replace('.', ',')} sem juros
+                </div>
+                <button
+                  onClick={() => setShowInstallments(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    textDecoration: 'underline',
+                    padding: '4px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <CreditCard size={14} /> Ver todas as parcelas
+                </button>
+                <div className="detail-pix-line">
+                  <span>⚡</span>
+                  <span>No PIX: <strong style={{ color: 'var(--color-primary)' }}>R$ {(currentPrice * 0.95).toFixed(2).replace('.', ',')}</strong> <small>(5% de desconto)</small></span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Payment & Shipping Badges */}

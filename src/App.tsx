@@ -407,26 +407,35 @@ function App() {
   }, [adminLoggedIn]);
 
   // ----------------------------------------------------
+  // ----------------------------------------------------
   // Sync to localStorage
   // ----------------------------------------------------
+  const safeSetLocalStorage = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn(`QuotaExceededError setting localStorage for ${key}`, e);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('plugin_view', currentView);
+    safeSetLocalStorage('plugin_view', currentView);
   }, [currentView]);
 
   useEffect(() => {
     if (selectedProductId) {
-      localStorage.setItem('plugin_selected_product_id', selectedProductId);
+      safeSetLocalStorage('plugin_selected_product_id', selectedProductId);
     } else {
       localStorage.removeItem('plugin_selected_product_id');
     }
   }, [selectedProductId]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_products', JSON.stringify(products));
+    safeSetLocalStorage('plugin_products', JSON.stringify(products));
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_cart', JSON.stringify(cartItems));
+    safeSetLocalStorage('plugin_cart', JSON.stringify(cartItems));
 
     // Sync cart with Supabase for abandoned cart emails
     if (userProfile?.isRegistered && userProfile?.email) {
@@ -496,35 +505,35 @@ function App() {
   }, [userProfile?.xp, userProfile?.email, userProfile?.isRegistered, userProfile?.rank]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_favorites', JSON.stringify(favorites));
+    safeSetLocalStorage('plugin_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_orders', JSON.stringify(orders));
+    safeSetLocalStorage('plugin_orders', JSON.stringify(orders));
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_profile', JSON.stringify(userProfile));
+    safeSetLocalStorage('plugin_profile', JSON.stringify(userProfile));
   }, [userProfile]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_store_settings', JSON.stringify(storeSettings));
+    safeSetLocalStorage('plugin_store_settings', JSON.stringify(storeSettings));
   }, [storeSettings]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_testimonials', JSON.stringify(testimonials));
+    safeSetLocalStorage('plugin_testimonials', JSON.stringify(testimonials));
   }, [testimonials]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_reviews', JSON.stringify(reviews));
+    safeSetLocalStorage('plugin_reviews', JSON.stringify(reviews));
   }, [reviews]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_brands', JSON.stringify(brands));
+    safeSetLocalStorage('plugin_brands', JSON.stringify(brands));
   }, [brands]);
 
   useEffect(() => {
-    localStorage.setItem('plugin_payment_settings', JSON.stringify(paymentSettings));
+    safeSetLocalStorage('plugin_payment_settings', JSON.stringify(paymentSettings));
   }, [paymentSettings]);
 
   // ----------------------------------------------------

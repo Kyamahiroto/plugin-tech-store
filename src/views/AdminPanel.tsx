@@ -14,6 +14,7 @@ import AdminQuizConfig from './admin/AdminQuizConfig';
 import AdminMetrics from './admin/AdminMetrics';
 import AdminTestimonials from './admin/AdminTestimonials';
 import AdminReviews from './admin/AdminReviews';
+import AdminCalculadora from './admin/AdminCalculadora';
 import { fileToBase64 } from '../utils/imageUpload';
 
 interface AdminPanelProps {
@@ -46,9 +47,9 @@ interface AdminPanelProps {
   onLogout: () => void;
 }
 
-type Tab = 'dashboard' | 'metrics' | 'products' | 'coupons' | 'banners' | 'categories' | 'orders' | 'payments' | 'gamification' | 'quiz' | 'testimonials' | 'reviews' | 'settings';
+type Tab = 'dashboard' | 'metrics' | 'products' | 'coupons' | 'banners' | 'categories' | 'orders' | 'payments' | 'gamification' | 'quiz' | 'testimonials' | 'reviews' | 'calculadora' | 'settings';
 
-import { Activity, MessageSquare } from 'lucide-react';
+import { Activity, MessageSquare, Calculator } from 'lucide-react';
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
@@ -63,6 +64,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'quiz', label: 'Quiz Setup', icon: <Package size={18} /> },
   { id: 'testimonials', label: 'Depoimentos', icon: <MessageSquare size={18} /> },
   { id: 'reviews', label: 'Avaliações', icon: <Star size={18} /> },
+  { id: 'calculadora', label: 'Calculadora', icon: <Calculator size={18} /> },
   { id: 'settings', label: 'Config. Loja', icon: <ShieldCheck size={18} /> },
 ];
 
@@ -110,6 +112,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             addToast={addToast}
           />
         );
+      case 'calculadora':
+        return <AdminCalculadora />;
       case 'settings': 
         return (
           <div style={{ padding: '24px', backgroundColor: 'var(--color-bg-card)', borderRadius: 'var(--radius-lg)' }}>

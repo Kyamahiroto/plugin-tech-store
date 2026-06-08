@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Gift, Heart, Headphones, Mouse, Keyboard, Gamepad, Cpu, Eye, Radio, Sparkles } from 'lucide-react';
 import { Product, Category, Banner, UserProfile, StoreSettings, Testimonial, Brand } from '../types';
 import HeroSlider from '../components/HeroSlider';
-import { FUNNY_MASCOT_QUOTES } from '../mockData';
 
 interface HomeViewProps {
   products: Product[];
@@ -129,7 +128,6 @@ const HomeView: React.FC<HomeViewProps> = ({
   onSelectCategoryClick,
   onOpenAddressModal
 }) => {
-  const [mascotQuoteIndex, setMascotQuoteIndex] = useState(0);
   const [displayLocation, setDisplayLocation] = useState('Sintonizando sua base...');
   const [giftCardFilter, setGiftCardFilter] = useState<'all' | 'games' | 'apps'>('all');
 
@@ -162,12 +160,6 @@ const HomeView: React.FC<HomeViewProps> = ({
         setDisplayLocation('Sintonize sua localização');
       });
   }, [userProfile?.address]);
-
-  // Rotate mascot quote on click
-  const handleMascotClick = () => {
-    setMascotQuoteIndex((prev) => (prev + 1) % FUNNY_MASCOT_QUOTES.length);
-    addToast('Mascote respondeu telepaticamente! 🧠👽', 'success');
-  };
 
   // Toggle dynamic location
   const handleLocationClick = () => {

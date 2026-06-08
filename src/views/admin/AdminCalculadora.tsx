@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calculator, DollarSign, Percent, ArrowRight } from 'lucide-react';
+import { Calculator, DollarSign, Percent } from 'lucide-react';
 
 const AdminCalculadora: React.FC = () => {
   // Configurações Gerais
@@ -50,10 +50,6 @@ const AdminCalculadora: React.FC = () => {
   // Helper para formatar moeda
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
-  
-  const formatUSD = (value: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   };
 
   const formatPercent = (value: number) => {

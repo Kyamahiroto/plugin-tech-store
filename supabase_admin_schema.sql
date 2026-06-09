@@ -23,6 +23,10 @@ ALTER TABLE public.categories
   ADD COLUMN IF NOT EXISTS image_url TEXT,
   ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
 
+INSERT INTO public.categories (id, name, icon_name, slug, order_index)
+VALUES ('cat-pcs', 'PCs', 'Cpu', 'pcs', 0)
+ON CONFLICT (slug) DO NOTHING;
+
 -- 1.5 Atualizar tabela orders com status inicial e código de rastreio
 ALTER TABLE public.orders
   ALTER COLUMN status SET DEFAULT 'received',

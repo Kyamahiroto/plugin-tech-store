@@ -258,7 +258,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                     key={v.id}
                     onClick={() => {
                       setSelectedVariationId(v.id);
-                      if (v.image) setSelectedImage(v.image);
+                      setSelectedImage(v.image || primaryImage);
                     }}
                     className={`variation-btn ${selectedVariationId === v.id ? 'active' : ''}`}
                     style={{

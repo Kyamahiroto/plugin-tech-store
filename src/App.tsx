@@ -945,8 +945,59 @@ function App() {
   };
 
   const handleDeleteCategory = async (catId: string) => {
-    setCategories(prev => prev.filter(c => c.id !== catId));
+    const categoryToDelete = categories.find(c => c.id === catId);
+    if (!categoryToDelete) return;
+
+    const existingDefaultCategory = categories.find(c => c.slug === 'pcs' || c.name.toLowerCase() === 'pcs');
+    const defaultCategory: Category = existingDefaultCategory || {
+      id: 'cat-pcs',
+      name: 'PCs',
+      iconName: 'Cpu',
+      slug: 'pcs',
+      orderIndex: categories.length
+    };
+
+    if (categoryToDelete.slug === defaultCategory.slug) {
+      addToast('A categoria padrÃ£o PCs nÃ£o pode ser removida.', 'error');
+      return;
+    }
+
+    setCategories(prev => {
+      const withoutDeleted = prev.filter(c => c.id !== catId);
+      return withoutDeleted.some(c => c.slug === defaultCategory.slug)
+        ? withoutDeleted
+        : sortCategories([...withoutDeleted, defaultCategory]);
+    });
+    setProducts(prev => prev.map(product =>
+      product.category === categoryToDelete.slug
+        ? { ...product, category: defaultCategory.slug }
+        : product
+    ));
+
     try {
+      if (!existingDefaultCategory) {
+        const payload = {
+          id: defaultCategory.id,
+          name: defaultCategory.name,
+          icon_name: defaultCategory.iconName,
+          slug: defaultCategory.slug,
+          image_url: defaultCategory.imageUrl || null
+        };
+        const { error: defaultCategoryError } = await supabase.from('categories').upsert([{ ...payload, order_index: defaultCategory.orderIndex || 0 }], { onConflict: 'id' });
+        if (defaultCategoryError && String(defaultCategoryError.message || '').includes('order_index')) {
+          const retry = await supabase.from('categories').upsert([payload], { onConflict: 'id' });
+          if (retry.error) throw retry.error;
+        } else if (defaultCategoryError) {
+          throw defaultCategoryError;
+        }
+      }
+
+      const { error: moveProductsError } = await supabase
+        .from('products')
+        .update({ category: defaultCategory.slug })
+        .eq('category', categoryToDelete.slug);
+      if (moveProductsError) throw moveProductsError;
+
       const { error } = await supabase.from('categories').delete().eq('id', catId);
       if (error) throw error;
     } catch (err) {

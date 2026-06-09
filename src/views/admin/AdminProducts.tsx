@@ -299,7 +299,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
                         }}
                         style={{ flex: 1 }}
                       />
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1.1 }}>
+                        <small style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.68rem', marginBottom: '4px' }}>
+                          Foto da variaÃ§Ã£o
+                        </small>
                         <input
                           type="file"
                           accept="image/*"
@@ -316,7 +319,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
                             }
                           }}
                         />
-                        {v.image && <img src={v.image} style={{ width: '24px', height: '24px', objectFit: 'cover', marginTop: '4px', borderRadius: '2px' }} />}
+                        {v.image && <img src={v.image} alt={v.name || 'Preview da variaÃ§Ã£o'} style={{ width: '42px', height: '42px', objectFit: 'cover', marginTop: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.12)' }} />}
                       </div>
                       <button
                         type="button"

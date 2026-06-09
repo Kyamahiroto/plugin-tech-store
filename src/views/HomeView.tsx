@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Gift, Heart, Headphones, Mouse, Keyboard, Gamepad, Cpu, Eye, Radio, Sparkles } from 'lucide-react';
-import { Product, Category, Banner, UserProfile, StoreSettings, Testimonial, Brand } from '../types';
+import { Product, Category, Banner, UserProfile, StoreSettings, Testimonial } from '../types';
 import HeroSlider from '../components/HeroSlider';
 
 interface HomeViewProps {
@@ -119,7 +119,6 @@ const HomeView: React.FC<HomeViewProps> = ({
   userProfile,
   storeSettings,
   testimonials,
-  brands,
   onAddToCart,
   onToggleFavorite,
   onSelectBanner,
@@ -266,7 +265,6 @@ const HomeView: React.FC<HomeViewProps> = ({
     gridImages: { image1: '/banner1.png', image2: '/banner2.png', image3: '/banner3.png' }
   };
 
-  const currentBrands: Brand[] = brands || [];
   const currentTestimonials: Testimonial[] = testimonials || [];
 
   return (
@@ -368,31 +366,6 @@ const HomeView: React.FC<HomeViewProps> = ({
           <h2 className="section-title" style={{ marginBottom: '24px' }}>{settings.row2Title}</h2>
           <div className="product-carousel" style={{ display: 'flex', gap: '20px', overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: '24px', marginBottom: '16px' }}>
             {products.filter(p => settings.row2ProductIds.includes(p.id)).map(p => renderProductCard(p, true))}
-          </div>
-
-          {/* BRANDS ROW */}
-          <h2 className="section-title" style={{ marginBottom: '24px' }}>Marcas</h2>
-          <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', marginBottom: '32px', scrollbarWidth: 'none' }}>
-            {currentBrands.map((b: Brand) => (
-              <div 
-                key={b.id} 
-                onClick={() => onSelectCategoryClick && onSelectCategoryClick('marcas')}
-                style={{ 
-                  flex: '0 0 120px', 
-                  height: '80px', 
-                  backgroundColor: 'var(--color-bg-card)', 
-                  borderRadius: 'var(--radius-md)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  border: '1px solid rgba(255,255,255,0.05)', 
-                  padding: '16px',
-                  cursor: 'pointer'
-                }}
-              >
-                 {b.imageUrl ? <img src={b.imageUrl} alt={b.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: 'grayscale(100%) brightness(200%)' }} /> : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700 }}>{b.name}</span>}
-              </div>
-            ))}
           </div>
 
           {/* ROW 3 */}

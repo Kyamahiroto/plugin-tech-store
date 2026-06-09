@@ -127,7 +127,7 @@ const Navbar: React.FC<NavbarProps> = ({
     setSearchFocused(false);
   };
 
-  const headerCategories = categories.slice(0, 6);
+  const headerCategories = categories.slice(0, 9);
 
 
   const mobileMenu = [

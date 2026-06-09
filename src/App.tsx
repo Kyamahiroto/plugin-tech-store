@@ -153,6 +153,9 @@ function App() {
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const isAdminRoute = window.location.pathname === '/painel-admin-loja-plugin';
 
+  const sortCategories = (list: Category[]) =>
+    [...list].sort((a, b) => (a.orderIndex ?? 9999) - (b.orderIndex ?? 9999));
+
   // Sync shippingAddress with userProfile.address
   useEffect(() => {
     if (userProfile?.address) {
@@ -174,13 +177,14 @@ function App() {
           .from('categories')
           .select('*');
         if (!catError && catData && catData.length > 0) {
-          const parsedCategories = catData.map(c => ({
+          const parsedCategories = sortCategories(catData.map(c => ({
             id: c.id,
             name: c.name,
             slug: c.slug,
             iconName: c.icon_name,
-            imageUrl: c.image_url
-          })) as Category[];
+            imageUrl: c.image_url,
+            orderIndex: c.order_index ?? 0
+          })) as Category[]);
           setCategories(parsedCategories);
           localStorage.setItem('plugin_categories', JSON.stringify(parsedCategories));
         }
@@ -895,15 +899,22 @@ function App() {
   // Handlers: Categories CRUD
   // ----------------------------------------------------
   const handleAddCategory = async (cat: Category) => {
-    setCategories(prev => [cat, ...prev]);
+    const categoryWithOrder = { ...cat, orderIndex: cat.orderIndex ?? categories.length };
+    setCategories(prev => sortCategories([categoryWithOrder, ...prev]));
     try {
-      const { error } = await supabase.from('categories').insert([{
-        id: cat.id,
-        name: cat.name,
-        icon_name: cat.iconName,
-        slug: cat.slug,
-        image_url: cat.imageUrl || null
-      }]);
+      const payload = {
+        id: categoryWithOrder.id,
+        name: categoryWithOrder.name,
+        icon_name: categoryWithOrder.iconName,
+        slug: categoryWithOrder.slug,
+        image_url: categoryWithOrder.imageUrl || null
+      };
+      const { error } = await supabase.from('categories').insert([{ ...payload, order_index: categoryWithOrder.orderIndex || 0 }]);
+      if (error && String(error.message || '').includes('order_index')) {
+        const retry = await supabase.from('categories').insert([payload]);
+        if (retry.error) throw retry.error;
+        return;
+      }
       if (error) throw error;
     } catch (err) {
       console.warn('Erro ao cadastrar categoria no Supabase:', err);
@@ -912,14 +923,20 @@ function App() {
   };
 
   const handleUpdateCategory = async (cat: Category) => {
-    setCategories(prev => prev.map(c => c.id === cat.id ? cat : c));
+    setCategories(prev => sortCategories(prev.map(c => c.id === cat.id ? cat : c)));
     try {
-      const { error } = await supabase.from('categories').update({
+      const payload = {
         name: cat.name,
         icon_name: cat.iconName,
         slug: cat.slug,
         image_url: cat.imageUrl || null
-      }).eq('id', cat.id);
+      };
+      const { error } = await supabase.from('categories').update({ ...payload, order_index: cat.orderIndex || 0 }).eq('id', cat.id);
+      if (error && String(error.message || '').includes('order_index')) {
+        const retry = await supabase.from('categories').update(payload).eq('id', cat.id);
+        if (retry.error) throw retry.error;
+        return;
+      }
       if (error) throw error;
     } catch (err) {
       console.warn('Erro ao atualizar categoria no Supabase:', err);
@@ -935,6 +952,23 @@ function App() {
     } catch (err) {
       console.warn('Erro ao deletar categoria no Supabase:', err);
       addToast('Conectado ao cache local. Execute o script SQL no seu dashboard para sincronizar na nuvem! 🌐⚡', 'error');
+    }
+  };
+
+  const handleReorderCategories = async (orderedCategories: Category[]) => {
+    const normalized = orderedCategories.map((category, index) => ({ ...category, orderIndex: index }));
+    setCategories(normalized);
+
+    try {
+      const updates = normalized.map(category =>
+        supabase.from('categories').update({ order_index: category.orderIndex || 0 }).eq('id', category.id)
+      );
+      const results = await Promise.all(updates);
+      const failed = results.find(result => result.error);
+      if (failed?.error) throw failed.error;
+    } catch (err) {
+      console.warn('Erro ao reordenar categorias no Supabase:', err);
+      addToast('Ordem salva no cache local. Execute a migração SQL para sincronizar na nuvem.', 'error');
     }
   };
 
@@ -968,6 +1002,7 @@ function App() {
             onSelectProduct={handleViewProduct}
             addToast={addToast}
             onSelectCategoryClick={(slug) => {
+              setSearchQuery('');
               setShopCategory(slug);
               setCurrentView('shop');
             }}
@@ -1053,6 +1088,8 @@ function App() {
             addToast={addToast}
             initialCategory={shopCategory}
             onClearInitialCategory={() => setShopCategory(null)}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
           />
         );
       case 'setup-quiz':
@@ -1130,6 +1167,7 @@ function App() {
           onAddCategory={handleAddCategory}
           onUpdateCategory={handleUpdateCategory}
           onDeleteCategory={handleDeleteCategory}
+          onReorderCategories={handleReorderCategories}
           onAdvanceOrderStatus={handleAdvanceOrderStatus}
           onUpdateOrderStatus={handleUpdateOrderStatus}
           storeSettings={storeSettings}
@@ -1187,6 +1225,13 @@ function App() {
         onLogout={handleLogout}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        products={products}
+        onSelectProduct={handleViewProduct}
+        onSelectCategoryClick={(slug) => {
+          setSearchQuery('');
+          setShopCategory(slug);
+          setCurrentView('shop');
+        }}
         shippingAddress={shippingAddress}
         setShippingAddress={setShippingAddress}
         categories={categories}

@@ -460,12 +460,12 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           <h3 className="section-title" style={{ fontSize: '1.2rem', marginBottom: '24px' }}>📝 Descrição do Produto</h3>
           <div className="product-description-layout">
             {/* Left: Rich description */}
-            <div className="product-description-content glass-panel" style={{ padding: '24px', flex: 3 }}>
+            <div className="product-description-content glass-panel" style={{ padding: '24px' }}>
               <div 
                 className="rich-description"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
                 style={{ 
-                  color: 'var(--color-text-muted)', 
+                  color: '#fff', 
                   lineHeight: '1.8', 
                   fontSize: '0.95rem'
                 }}
@@ -473,7 +473,7 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             </div>
 
             {/* Right: Alien mascot floating */}
-            <div className="alien-mascot-column" ref={alienRef} style={{ flex: 1, minWidth: '180px' }}>
+            <div className="alien-mascot-column" ref={alienRef}>
               <div className="alien-mascot-sticky" style={{ position: 'sticky', top: '100px' }}>
                 <div className="alien-ufo-animation">
                   <div className="ufo-body" style={{ fontSize: '4rem', filter: 'drop-shadow(0 0 10px var(--color-primary))' }}>🛸</div>

@@ -10,11 +10,18 @@ ALTER TABLE public.products
   ADD COLUMN IF NOT EXISTS virtual_content TEXT,
   ADD COLUMN IF NOT EXISTS order_bump_id TEXT REFERENCES public.products(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS order_bump_discount INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]'::jsonb;
+  ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS variations JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS estilo_visual JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS prioridade JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS perfil_recomendado JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS popularidade INTEGER DEFAULT 0;
 
 -- 1.2 Atualizar tabela categories com ícone de imagem
 ALTER TABLE public.categories
-  ADD COLUMN IF NOT EXISTS image_url TEXT;
+  ADD COLUMN IF NOT EXISTS image_url TEXT,
+  ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
 
 -- 1.5 Atualizar tabela orders com status inicial e código de rastreio
 ALTER TABLE public.orders

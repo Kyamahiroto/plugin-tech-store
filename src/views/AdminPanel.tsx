@@ -29,6 +29,7 @@ interface AdminPanelProps {
   onAddCategory: (c: Category) => void;
   onUpdateCategory: (c: Category) => void;
   onDeleteCategory: (id: string) => void;
+  onReorderCategories?: (categories: Category[]) => void;
   onAdvanceOrderStatus: (orderId: string) => void;
   onUpdateOrderStatus: (orderId: string, newStatus: Order['status'], trackingCode?: string) => void;
   storeSettings?: import('../types').StoreSettings;
@@ -72,11 +73,58 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   products, categories, banners, orders,
   onAddProduct, onUpdateProduct, onDeleteProduct,
   onUpdateBanners, onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAdvanceOrderStatus, onUpdateOrderStatus, addToast, onLogout,
+  onReorderCategories, onAdvanceOrderStatus, onUpdateOrderStatus, addToast, onLogout,
   storeSettings, paymentSettings, quizConfig, testimonials, reviews, onUpdateStoreSettings, onUpdatePaymentSettings, onUpdateQuizConfig, onUpdateTestimonials, onUpdateReviews
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const currentStoreSettings = storeSettings || {
+    row1Title: 'Ofertas do Dia',
+    row1ProductIds: products.slice(0, 4).map(p => p.id),
+    row2Title: 'Hardware Alienigena',
+    row2ProductIds: products.slice(2, 6).map(p => p.id),
+    row3Title: 'Acessorios Essenciais',
+    row3ProductIds: products.slice(4, 8).map(p => p.id),
+    gridImages: { image1: '', image2: '', image3: '' }
+  };
+
+  const updateStoreSettings = (patch: Partial<import('../types').StoreSettings>) => {
+    onUpdateStoreSettings?.({ ...currentStoreSettings, ...patch });
+  };
+
+  const renderProductPicker = (
+    label: string,
+    keyName: 'row1ProductIds' | 'row2ProductIds' | 'row3ProductIds'
+  ) => {
+    const selectedIds = currentStoreSettings[keyName] || [];
+
+    return (
+      <div className="form-group">
+        <label className="cyber-label">{label} ({selectedIds.length} selecionados)</label>
+        <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius-md)', padding: '10px', display: 'grid', gap: '8px', background: 'rgba(0,0,0,0.18)' }}>
+          {products.map(product => {
+            const checked = selectedIds.includes(product.id);
+            return (
+              <label key={product.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '8px', borderRadius: '6px', background: checked ? 'rgba(69,230,39,0.08)' : 'rgba(255,255,255,0.02)', border: `1px solid ${checked ? 'rgba(69,230,39,0.25)' : 'rgba(255,255,255,0.05)'}` }}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => {
+                    const nextIds = e.target.checked
+                      ? [...selectedIds, product.id]
+                      : selectedIds.filter(id => id !== product.id);
+                    updateStoreSettings({ [keyName]: nextIds } as Partial<import('../types').StoreSettings>);
+                  }}
+                />
+                <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</span>
+                <small style={{ color: 'var(--color-primary)', whiteSpace: 'nowrap' }}>R$ {product.price.toFixed(2).replace('.', ',')}</small>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   const renderTab = () => {
     switch (activeTab) {
@@ -85,7 +133,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       case 'products': return <AdminProducts products={products} categories={categories} onAdd={onAddProduct} onUpdate={onUpdateProduct} onDelete={onDeleteProduct} addToast={addToast} />;
       case 'coupons': return <AdminCoupons addToast={addToast} />;
       case 'banners': return <AdminBanners banners={banners} onUpdate={onUpdateBanners} addToast={addToast} />;
-      case 'categories': return <AdminCategories categories={categories} onAdd={onAddCategory} onUpdate={onUpdateCategory} onDelete={onDeleteCategory} addToast={addToast} />;
+      case 'categories': return <AdminCategories categories={categories} onAdd={onAddCategory} onUpdate={onUpdateCategory} onDelete={onDeleteCategory} onReorder={onReorderCategories} addToast={addToast} />;
       case 'orders': return <AdminOrders orders={orders} onAdvanceStatus={onAdvanceOrderStatus} onUpdateStatus={onUpdateOrderStatus} />;
       case 'payments': return <AdminPayments addToast={addToast} paymentSettings={paymentSettings!} onUpdatePaymentSettings={onUpdatePaymentSettings!} />;
       case 'gamification': return <AdminGamification addToast={addToast} />;
@@ -126,34 +174,37 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 <input 
                   type="text" 
                   className="cyber-input" 
-                  value={storeSettings?.row1Title || ''} 
-                  onChange={(e) => onUpdateStoreSettings?.({...storeSettings!, row1Title: e.target.value})}
+                  value={currentStoreSettings.row1Title || ''} 
+                  onChange={(e) => updateStoreSettings({ row1Title: e.target.value })}
                 />
               </div>
+              {renderProductPicker('Produtos da Linha 1', 'row1ProductIds')}
               <div className="form-group">
                 <label className="cyber-label">Título da Linha 2</label>
                 <input 
                   type="text" 
                   className="cyber-input" 
-                  value={storeSettings?.row2Title || ''} 
-                  onChange={(e) => onUpdateStoreSettings?.({...storeSettings!, row2Title: e.target.value})}
+                  value={currentStoreSettings.row2Title || ''} 
+                  onChange={(e) => updateStoreSettings({ row2Title: e.target.value })}
                 />
               </div>
+              {renderProductPicker('Produtos da Linha 2', 'row2ProductIds')}
               <div className="form-group">
                 <label className="cyber-label">Título da Linha 3</label>
                 <input 
                   type="text" 
                   className="cyber-input" 
-                  value={storeSettings?.row3Title || ''} 
-                  onChange={(e) => onUpdateStoreSettings?.({...storeSettings!, row3Title: e.target.value})}
+                  value={currentStoreSettings.row3Title || ''} 
+                  onChange={(e) => updateStoreSettings({ row3Title: e.target.value })}
                 />
               </div>
+              {renderProductPicker('Produtos da Linha 3', 'row3ProductIds')}
 
               <h3 style={{ marginTop: '16px', color: 'var(--color-text-white)' }}>Banners da Home (3 Imagens)</h3>
               
               <div className="form-group">
                 <label className="cyber-label">Imagem 1 (Upload)</label>
-                {storeSettings?.gridImages?.image1 && <img src={storeSettings.gridImages.image1} alt="Preview 1" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />}
+                {currentStoreSettings.gridImages?.image1 && <img src={currentStoreSettings.gridImages.image1} alt="Preview 1" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />}
                 <input 
                   type="file" 
                   accept="image/*"
@@ -162,7 +213,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     const file = e.target.files?.[0];
                     if (file) {
                       const base64 = await fileToBase64(file);
-                      onUpdateStoreSettings?.({...storeSettings!, gridImages: {...storeSettings!.gridImages, image1: base64}});
+                      updateStoreSettings({ gridImages: { ...currentStoreSettings.gridImages, image1: base64 } });
                     }
                   }}
                 />
@@ -170,14 +221,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 <input 
                   type="text" 
                   className="cyber-input" 
-                  value={storeSettings?.gridImages?.link1 || ''} 
-                  onChange={(e) => onUpdateStoreSettings?.({...storeSettings!, gridImages: {...storeSettings!.gridImages, link1: e.target.value}})}
+                  value={currentStoreSettings.gridImages?.link1 || ''} 
+                  onChange={(e) => updateStoreSettings({ gridImages: { ...currentStoreSettings.gridImages, link1: e.target.value } })}
                 />
               </div>
 
               <div className="form-group">
                 <label className="cyber-label">Imagem 2 (Upload)</label>
-                {storeSettings?.gridImages?.image2 && <img src={storeSettings.gridImages.image2} alt="Preview 2" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />}
+                {currentStoreSettings.gridImages?.image2 && <img src={currentStoreSettings.gridImages.image2} alt="Preview 2" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />}
                 <input 
                   type="file" 
                   accept="image/*"
@@ -186,7 +237,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     const file = e.target.files?.[0];
                     if (file) {
                       const base64 = await fileToBase64(file);
-                      onUpdateStoreSettings?.({...storeSettings!, gridImages: {...storeSettings!.gridImages, image2: base64}});
+                      updateStoreSettings({ gridImages: { ...currentStoreSettings.gridImages, image2: base64 } });
                     }
                   }}
                 />
@@ -194,14 +245,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 <input 
                   type="text" 
                   className="cyber-input" 
-                  value={storeSettings?.gridImages?.link2 || ''} 
-                  onChange={(e) => onUpdateStoreSettings?.({...storeSettings!, gridImages: {...storeSettings!.gridImages, link2: e.target.value}})}
+                  value={currentStoreSettings.gridImages?.link2 || ''} 
+                  onChange={(e) => updateStoreSettings({ gridImages: { ...currentStoreSettings.gridImages, link2: e.target.value } })}
                 />
               </div>
 
               <div className="form-group">
                 <label className="cyber-label">Imagem 3 (Upload)</label>
-                {storeSettings?.gridImages?.image3 && <img src={storeSettings.gridImages.image3} alt="Preview 3" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />}
+                {currentStoreSettings.gridImages?.image3 && <img src={currentStoreSettings.gridImages.image3} alt="Preview 3" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />}
                 <input 
                   type="file" 
                   accept="image/*"
@@ -210,7 +261,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                     const file = e.target.files?.[0];
                     if (file) {
                       const base64 = await fileToBase64(file);
-                      onUpdateStoreSettings?.({...storeSettings!, gridImages: {...storeSettings!.gridImages, image3: base64}});
+                      updateStoreSettings({ gridImages: { ...currentStoreSettings.gridImages, image3: base64 } });
                     }
                   }}
                 />
@@ -218,8 +269,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 <input 
                   type="text" 
                   className="cyber-input" 
-                  value={storeSettings?.gridImages?.link3 || ''} 
-                  onChange={(e) => onUpdateStoreSettings?.({...storeSettings!, gridImages: {...storeSettings!.gridImages, link3: e.target.value}})}
+                  value={currentStoreSettings.gridImages?.link3 || ''} 
+                  onChange={(e) => updateStoreSettings({ gridImages: { ...currentStoreSettings.gridImages, link3: e.target.value } })}
                 />
               </div>
               

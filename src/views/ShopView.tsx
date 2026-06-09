@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Product, Category } from '../types';
 import { Heart, Search, Filter, SlidersHorizontal, ChevronDown, Check } from 'lucide-react';
 import { ProductImage } from './HomeView';
@@ -13,6 +13,8 @@ interface ShopViewProps {
   addToast: (msg: string, type?: 'success' | 'error') => void;
   initialCategory?: string | null;
   onClearInitialCategory?: () => void;
+  searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
 }
 
 const ShopView: React.FC<ShopViewProps> = ({
@@ -23,13 +25,21 @@ const ShopView: React.FC<ShopViewProps> = ({
   onAddToCart,
   onSelectProduct,
   initialCategory,
-  onClearInitialCategory
+  onClearInitialCategory,
+  searchQuery: externalSearchQuery,
+  setSearchQuery: externalSetSearchQuery
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategory ? [initialCategory] : []);
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
   const [sortBy, setSortBy] = useState<'recent' | 'price_asc' | 'price_desc' | 'name_asc'>('recent');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const searchQuery = externalSearchQuery ?? localSearchQuery;
+  const setSearchQuery = externalSetSearchQuery ?? setLocalSearchQuery;
+
+  useEffect(() => {
+    setSelectedCategories(initialCategory ? [initialCategory] : []);
+  }, [initialCategory]);
 
   // Toggle category
   const toggleCategory = (slug: string) => {

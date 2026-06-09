@@ -18,7 +18,8 @@ CREATE TABLE public.categories (
     name TEXT NOT NULL,
     icon_name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
-    image_url TEXT
+    image_url TEXT,
+    order_index INTEGER DEFAULT 0
 );
 
 -- Ativar RLS (Row Level Security)

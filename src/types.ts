@@ -49,6 +49,7 @@ export interface Category {
   iconName: string;
   slug: string;
   imageUrl?: string;
+  orderIndex?: number;
 }
 
 export interface Banner {

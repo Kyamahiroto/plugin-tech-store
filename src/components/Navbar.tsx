@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Menu, Heart, Receipt, User, X, Compass, LogOut, Package, MapPin, Search } from 'lucide-react';
-import { UserProfile } from '../types';
+import { Product, UserProfile } from '../types';
 import { getRankByXP } from '../utils/gamification';
 import AddressForm from './AddressForm';
 
@@ -17,6 +17,9 @@ interface NavbarProps {
   onLogout?: () => void;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
+  products?: Product[];
+  onSelectProduct?: (productId: string) => void;
+  onSelectCategoryClick?: (slug: string | null) => void;
   shippingAddress?: string;
   setShippingAddress?: (address: string) => void;
   categories?: import('../types').Category[];
@@ -37,6 +40,9 @@ const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   searchQuery = '',
   setSearchQuery,
+  products = [],
+  onSelectProduct,
+  onSelectCategoryClick,
   shippingAddress = '',
   setShippingAddress,
   categories = [],
@@ -46,6 +52,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [profilePopupOpen, setProfilePopupOpen] = useState(false);
   const [internalShowAddressModal, setInternalShowAddressModal] = useState(false);
   const [cartPopupOpen, setCartPopupOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const cartPopupTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const showAddressModal = externalShowAddressModal !== undefined ? externalShowAddressModal : internalShowAddressModal;
@@ -106,6 +113,20 @@ const Navbar: React.FC<NavbarProps> = ({
     }, 300);
   };
 
+  const searchSuggestions = searchQuery.trim()
+    ? products
+        .filter(product => {
+          const q = searchQuery.trim().toLowerCase();
+          return product.name.toLowerCase().includes(q) || product.description.toLowerCase().includes(q);
+        })
+        .slice(0, 6)
+    : [];
+
+  const openShopSearch = () => {
+    setCurrentView('shop');
+    setSearchFocused(false);
+  };
+
 
   const mobileMenu = [
     { id: 'home', label: 'Home', icon: Compass },
@@ -146,7 +167,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
-            <div className="cyber-input-wrapper" style={{ maxWidth: '600px', flex: 1 }}>
+            <div className="cyber-input-wrapper" style={{ maxWidth: '600px', flex: 1, position: 'relative' }}>
               <input
                 type="text"
                 placeholder="Busque por alienwares, naves, implantes..."
@@ -154,17 +175,48 @@ const Navbar: React.FC<NavbarProps> = ({
                 style={{ padding: '10px 20px', paddingRight: '48px', height: '42px', backgroundColor: 'rgba(0,0,0,0.5)' }}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery?.(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 160)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') setCurrentView('shop');
+                  if (e.key === 'Enter') openShopSearch();
                 }}
               />
               <button 
                 className="cyber-input-btn" 
                 style={{ height: '34px', width: '34px', right: '4px' }}
-                onClick={() => setCurrentView('shop')}
+                onClick={openShopSearch}
               >
                 <Search size={16} />
               </button>
+              {searchFocused && searchSuggestions.length > 0 && (
+                <div className="header-search-suggestions">
+                  {searchSuggestions.map(product => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      className="header-search-suggestion"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        onSelectProduct?.(product.id);
+                        setSearchFocused(false);
+                      }}
+                    >
+                      <span className="header-search-suggestion-name">{product.name}</span>
+                      <span className="header-search-suggestion-price">R$ {product.price.toFixed(2).replace('.', ',')}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="header-search-suggestion view-all"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      openShopSearch();
+                    }}
+                  >
+                    Ver todos os resultados
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -395,21 +447,27 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Categories Subheader */}
       <div className="header-categories-bar">
-        <div className="header-categories-inner" style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
-          <div className="header-categories-list" style={{ display: 'flex', gap: '24px', overflowX: 'auto', padding: '12px 0' }}>
+        <div className="header-categories-inner" style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', gap: '12px' }}>
+          <div className="header-categories-list" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '10px 0', flex: 1, minWidth: 0 }}>
              <div 
                 className="header-category-item" 
                 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onClick={() => setCurrentView('shop')}
+                onClick={() => {
+                  onSelectCategoryClick?.(null);
+                  setCurrentView('shop');
+                }}
              >
                 <Menu size={16} /> Todos os Departamentos
              </div>
-             {categories.slice(0, 8).map(c => (
+             {categories.map(c => (
                <div 
                  key={c.id} 
                  className="header-category-item" 
                  style={{ fontSize: '0.85rem', color: 'var(--color-text-white)', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.2s' }}
-                 onClick={() => setCurrentView('shop')}
+                 onClick={() => {
+                   onSelectCategoryClick?.(c.slug);
+                   setCurrentView('shop');
+                 }}
                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-white)'}
                >
@@ -417,7 +475,7 @@ const Navbar: React.FC<NavbarProps> = ({
                </div>
              ))}
           </div>
-          <div className="header-setup-banner" onClick={() => setCurrentView('setup-quiz')} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', backgroundColor: 'var(--color-primary-dim)', padding: '6px 16px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-primary)' }}>
+          <div className="header-setup-banner" onClick={() => setCurrentView('setup-quiz')} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', backgroundColor: 'var(--color-primary-dim)', padding: '6px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-primary)', flexShrink: 0 }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase' }}>Monte seu Setup</span>
             <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>🛸</span>
           </div>

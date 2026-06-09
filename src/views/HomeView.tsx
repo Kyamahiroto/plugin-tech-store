@@ -306,7 +306,7 @@ const HomeView: React.FC<HomeViewProps> = ({
             >
               <div className="category-icon-box">
                 {cat.imageUrl ? (
-                  <img src={cat.imageUrl} alt={cat.name} style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
+                  <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   renderCategoryIcon(cat.iconName)
                 )}

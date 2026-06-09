@@ -192,6 +192,50 @@
   }
 }
 
+.header-search-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(69, 230, 39, 0.18);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.header-search-suggestion {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  color: #fff;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.header-search-suggestion:hover,
+.header-search-suggestion.view-all {
+  background: rgba(69, 230, 39, 0.08);
+}
+
+.header-search-suggestion-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-search-suggestion-price {
+  color: var(--color-primary);
+  white-space: nowrap;
+  font-weight: 700;
+}
+
 .header-categories-bar {
   display: none;
   background-color: rgba(10, 10, 10, 0.95);
@@ -620,6 +664,7 @@
   color: var(--color-text-white);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
 .category-pill:hover .category-icon-box, 
@@ -4771,22 +4816,41 @@
 /* ================================================== */
 
 .product-description-layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
   gap: 32px;
   align-items: flex-start;
 }
 
 @media (max-width: 768px) {
   .product-description-layout {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
   .alien-mascot-column {
     order: -1;
+    width: 100%;
+    min-width: 0;
   }
 }
 
 .product-description-content {
   border: 1px solid rgba(69, 230, 39, 0.08);
+  min-width: 0;
+}
+
+.alien-mascot-column {
+  width: 220px;
+  min-width: 220px;
+}
+
+.rich-description,
+.rich-description * {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+.rich-description {
+  overflow-wrap: anywhere;
 }
 
 .rich-description img {

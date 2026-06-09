@@ -127,6 +127,8 @@ const Navbar: React.FC<NavbarProps> = ({
     setSearchFocused(false);
   };
 
+  const headerCategories = categories.slice(0, 6);
+
 
   const mobileMenu = [
     { id: 'home', label: 'Home', icon: Compass },
@@ -448,10 +450,10 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Categories Subheader */}
       <div className="header-categories-bar">
         <div className="header-categories-inner" style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', gap: '12px' }}>
-          <div className="header-categories-list" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '10px 0', flex: 1, minWidth: 0 }}>
+          <div className="header-categories-list" style={{ display: 'flex', gap: '12px', overflow: 'hidden', padding: '10px 0', flex: 1, minWidth: 0 }}>
              <div 
                 className="header-category-item" 
-                style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0 }}
                 onClick={() => {
                   onSelectCategoryClick?.(null);
                   setCurrentView('shop');
@@ -459,7 +461,7 @@ const Navbar: React.FC<NavbarProps> = ({
              >
                 <Menu size={16} /> Todos os Departamentos
              </div>
-             {categories.map(c => (
+             {headerCategories.map(c => (
                <div 
                  key={c.id} 
                  className="header-category-item" 

@@ -1,9 +1,9 @@
 -- ====================================================
--- PLUG-IN TECH STORE - ADMIN SCHEMA MIGRATION
+-- PLUG-IN TECH STORE - PATCH SEGURO PARA BANCO EXISTENTE
 -- ====================================================
--- Execute no SQL Editor do Supabase após o schema principal.
+-- Execute este arquivo no SQL Editor do Supabase.
+-- Nao execute o supabase_schema.sql completo em um banco ja em uso.
 
--- 1. Atualizar tabela products com campos para tipo de produto e order bump
 ALTER TABLE public.products
   ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'fisico' CHECK (type IN ('fisico', 'virtual', 'afiliado')),
   ADD COLUMN IF NOT EXISTS affiliate_link TEXT,
@@ -18,17 +18,14 @@ ALTER TABLE public.products
   ADD COLUMN IF NOT EXISTS perfil_recomendado JSONB DEFAULT '[]'::jsonb,
   ADD COLUMN IF NOT EXISTS popularidade INTEGER DEFAULT 0;
 
--- 1.2 Atualizar tabela categories com ícone de imagem
 ALTER TABLE public.categories
   ADD COLUMN IF NOT EXISTS image_url TEXT,
   ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;
 
--- 1.5 Atualizar tabela orders com status inicial e código de rastreio
 ALTER TABLE public.orders
   ALTER COLUMN status SET DEFAULT 'received',
   ADD COLUMN IF NOT EXISTS tracking_code TEXT;
 
--- 2. Tabela de Cupons
 CREATE TABLE IF NOT EXISTS public.coupons (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   code TEXT NOT NULL UNIQUE,
@@ -47,11 +44,11 @@ CREATE TABLE IF NOT EXISTS public.coupons (
 
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admin pode gerenciar cupons" ON public.coupons;
-DROP POLICY IF EXISTS "PÃºblico pode ler cupons ativos" ON public.coupons;
+DROP POLICY IF EXISTS "Publico pode ler cupons ativos" ON public.coupons;
+DROP POLICY IF EXISTS "Público pode ler cupons ativos" ON public.coupons;
 CREATE POLICY "Admin pode gerenciar cupons" ON public.coupons FOR ALL USING (true);
-CREATE POLICY "Público pode ler cupons ativos" ON public.coupons FOR SELECT USING (active = true);
+CREATE POLICY "Publico pode ler cupons ativos" ON public.coupons FOR SELECT USING (active = true);
 
--- Cupons iniciais de exemplo
 INSERT INTO public.coupons (code, type, value, free_shipping, first_purchase_only, non_cumulative, min_order_value, max_uses, active)
 VALUES
   ('BEMVINDO10', 'percent', 10, false, true, true, 50, 100, true),
@@ -59,7 +56,6 @@ VALUES
   ('PLUG50', 'fixed', 50, false, false, true, 200, 50, true)
 ON CONFLICT (code) DO NOTHING;
 
--- 3. Tabela de Configurações de Pagamento (única linha)
 CREATE TABLE IF NOT EXISTS public.payment_settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
   pix_discount_percent NUMERIC NOT NULL DEFAULT 5,
@@ -71,15 +67,15 @@ CREATE TABLE IF NOT EXISTS public.payment_settings (
 
 ALTER TABLE public.payment_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admin pode gerenciar pagamentos" ON public.payment_settings;
-DROP POLICY IF EXISTS "PÃºblico pode ler configuraÃ§Ãµes de pagamento" ON public.payment_settings;
+DROP POLICY IF EXISTS "Publico pode ler configuracoes de pagamento" ON public.payment_settings;
+DROP POLICY IF EXISTS "Público pode ler configurações de pagamento" ON public.payment_settings;
 CREATE POLICY "Admin pode gerenciar pagamentos" ON public.payment_settings FOR ALL USING (true);
-CREATE POLICY "Público pode ler configurações de pagamento" ON public.payment_settings FOR SELECT USING (true);
+CREATE POLICY "Publico pode ler configuracoes de pagamento" ON public.payment_settings FOR SELECT USING (true);
 
 INSERT INTO public.payment_settings (id, pix_discount_percent, max_installments, installment_min_value, free_shipping_threshold)
 VALUES ('global', 5, 12, 30, 299)
 ON CONFLICT (id) DO NOTHING;
 
--- 4. Tabela de Usuários Admin (e-mails autorizados)
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   email TEXT NOT NULL UNIQUE,
@@ -89,8 +85,6 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 );
 
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admin pode gerenciar usuÃ¡rios admin" ON public.admin_users;
-CREATE POLICY "Admin pode gerenciar usuários admin" ON public.admin_users FOR ALL USING (true);
-
--- Inserir admin padrão (substitua pelo e-mail desejado)
--- INSERT INTO public.admin_users (email, name) VALUES ('seu@email.com', 'Administrador Master');
+DROP POLICY IF EXISTS "Admin pode gerenciar usuarios admin" ON public.admin_users;
+DROP POLICY IF EXISTS "Admin pode gerenciar usuários admin" ON public.admin_users;
+CREATE POLICY "Admin pode gerenciar usuarios admin" ON public.admin_users FOR ALL USING (true);

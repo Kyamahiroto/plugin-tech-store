@@ -228,7 +228,14 @@ function App() {
             virtualContent: p.virtual_content,
             orderBumpId: p.order_bump_id,
             orderBumpDiscount: p.order_bump_discount,
-            gallery: typeof p.gallery === 'string' ? JSON.parse(p.gallery) : p.gallery
+            gallery: typeof p.gallery === 'string' ? JSON.parse(p.gallery) : p.gallery,
+            variations: typeof p.variations === 'string' ? JSON.parse(p.variations) : p.variations,
+            videoUrl: p.video_url || p.videoUrl,
+            tags: typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags,
+            estiloVisual: typeof p.estilo_visual === 'string' ? JSON.parse(p.estilo_visual) : p.estilo_visual,
+            prioridade: typeof p.prioridade === 'string' ? JSON.parse(p.prioridade) : p.prioridade,
+            perfilRecomendado: typeof p.perfil_recomendado === 'string' ? JSON.parse(p.perfil_recomendado) : p.perfil_recomendado,
+            popularidade: p.popularidade ? Number(p.popularidade) : 0
           })) as Product[];
           
           setProducts(parsedProducts);
@@ -818,7 +825,13 @@ function App() {
         virtual_content: newProduct.virtualContent,
         order_bump_id: newProduct.orderBumpId,
         order_bump_discount: newProduct.orderBumpDiscount,
-        gallery: newProduct.gallery || []
+        gallery: newProduct.gallery || [],
+        variations: newProduct.variations || [],
+        tags: newProduct.tags || [],
+        estilo_visual: newProduct.estiloVisual || [],
+        prioridade: newProduct.prioridade || [],
+        perfil_recomendado: newProduct.perfilRecomendado || [],
+        popularidade: newProduct.popularidade || 0
       }]);
       if (error) throw error;
     } catch (err) {
@@ -850,7 +863,13 @@ function App() {
         virtual_content: updatedProduct.virtualContent,
         order_bump_id: updatedProduct.orderBumpId,
         order_bump_discount: updatedProduct.orderBumpDiscount,
-        gallery: updatedProduct.gallery || []
+        gallery: updatedProduct.gallery || [],
+        variations: updatedProduct.variations || [],
+        tags: updatedProduct.tags || [],
+        estilo_visual: updatedProduct.estiloVisual || [],
+        prioridade: updatedProduct.prioridade || [],
+        perfil_recomendado: updatedProduct.perfilRecomendado || [],
+        popularidade: updatedProduct.popularidade || 0
       }).eq('id', updatedProduct.id);
       if (error) throw error;
     } catch (err) {

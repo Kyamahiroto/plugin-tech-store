@@ -2434,11 +2434,14 @@
 .thumbnail-gallery-row {
   display: flex;
   gap: 12px;
-  justify-content: space-between;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
 }
 
 .thumbnail-box {
-  flex: 1;
+  flex: 0 0 76px;
   aspect-ratio: 1;
   border-radius: var(--radius-md);
   background: var(--color-bg-card);

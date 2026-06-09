@@ -135,8 +135,15 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   // Real specs (no fallback)
   const productSpecs = product.specs ? Object.entries(product.specs) : [];
 
-  // Check if gallery has real items
-  const hasGallery = product.gallery && product.gallery.length > 0;
+  const primaryImage = product.id === 'prod-orelha-gato' ? 'cat-headphones' : product.image;
+  const thumbnailImages = [
+    primaryImage,
+    ...(product.gallery || []),
+    ...(product.variations || []).map(v => v.image)
+  ].filter((img): img is string => !!img && img.trim().length > 0)
+   .filter((img, idx, list) => list.indexOf(img) === idx);
+  const activeImage = selectedImage || primaryImage;
+  const hasThumbnails = thumbnailImages.length > 0;
   const hasVideo = !!product.videoUrl;
 
   // Get YouTube embed URL
@@ -180,18 +187,15 @@ const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             </button>
 
             <div className="main-image-viewport">
-              <ProductImage type={selectedImage || (product.id === 'prod-orelha-gato' ? 'cat-headphones' : product.image)} colorStyle={product.category === 'teclados' ? 'blue' : product.category === 'games' ? 'orange' : 'green'} />
+              <ProductImage type={activeImage} colorStyle={product.category === 'teclados' ? 'blue' : product.category === 'games' ? 'orange' : 'green'} />
             </div>
           </div>
 
-          {/* Thumbnail strip — only if gallery or video exists */}
-          {(hasGallery || hasVideo) && (
+          {/* Thumbnail strip: primary image, gallery images, variation images, and video */}
+          {(hasThumbnails || hasVideo) && (
             <div className="thumbnail-gallery-row">
-              <div className={`thumbnail-box ${!selectedImage ? 'active' : ''}`} onClick={() => setSelectedImage(null)}>
-                <ProductImage type={product.image} colorStyle="green" />
-              </div>
-              {hasGallery && product.gallery!.map((imgUrl, idx) => (
-                <div key={idx} className={`thumbnail-box ${selectedImage === imgUrl ? 'active' : ''}`} onClick={() => setSelectedImage(imgUrl)}>
+              {thumbnailImages.map((imgUrl) => (
+                <div key={imgUrl} className={`thumbnail-box ${activeImage === imgUrl ? 'active' : ''}`} onClick={() => setSelectedImage(imgUrl)}>
                   <ProductImage type={imgUrl} colorStyle="green" />
                 </div>
               ))}

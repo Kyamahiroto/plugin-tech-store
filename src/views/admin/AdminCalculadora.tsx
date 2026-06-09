@@ -1,342 +1,230 @@
-import React, { useState } from 'react';
-import { Calculator, DollarSign, Percent } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Calculator, DollarSign, Percent, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const AdminCalculadora: React.FC = () => {
-  // Configurações Gerais
-  const [cotacaoDolar, setCotacaoDolar] = useState<number>(5.15);
-  const [custoProdutoDolar, setCustoProdutoDolar] = useState<number>(5.00);
-  const [taxaIofSpread, setTaxaIofSpread] = useState<number>(4.7); // 4.7% IOF padrão BR
+  const [custoProdutoUsd, setCustoProdutoUsd] = useState(8);
+  const [cotacaoDolar, setCotacaoDolar] = useState(5.15);
+  const [iofSpreadPercent, setIofSpreadPercent] = useState(4.7);
+  const [freteFornecedorUsd, setFreteFornecedorUsd] = useState(2);
+  const [seguroUsd, setSeguroUsd] = useState(0);
 
-  // Variáveis Comuns
-  const [oscilacaoCambioPercent, setOscilacaoCambioPercent] = useState<number>(10);
-  const [impostosPercent, setImpostosPercent] = useState<number>(7);
-  const [cartaoPercent, setCartaoPercent] = useState<number>(5);
-  const [marketingPercent, setMarketingPercent] = useState<number>(10);
-  const [devolucaoPercent, setDevolucaoPercent] = useState<number>(3);
-  const [plataformaPercent, setPlataformaPercent] = useState<number>(16);
-  const [custoVendaFix, setCustoVendaFix] = useState<number>(0);
-  const [custoFreteFix, setCustoFreteFix] = useState<number>(0);
-  const [outroCustoFix, setOutroCustoFix] = useState<number>(0);
+  const [impostoImportacaoPercent, setImpostoImportacaoPercent] = useState(20);
+  const [icmsPercent, setIcmsPercent] = useState(17);
+  const [freteCliente, setFreteCliente] = useState(0);
+  const [embalagem, setEmbalagem] = useState(2.5);
+  const [custoOperacional, setCustoOperacional] = useState(3);
 
-  // Lado Esquerdo (Calculado por Markup)
-  const [markupDesejado, setMarkupDesejado] = useState<number>(3.0);
+  const [taxaGatewayPercent, setTaxaGatewayPercent] = useState(4.99);
+  const [taxaGatewayFixa, setTaxaGatewayFixa] = useState(0.49);
+  const [taxaPlataformaPercent, setTaxaPlataformaPercent] = useState(2);
+  const [impostoVendaPercent, setImpostoVendaPercent] = useState(6);
+  const [perdasPercent, setPerdasPercent] = useState(3);
 
-  // Lado Direito (Calculado por Preço Desejado)
-  const [precoDesejado, setPrecoDesejado] = useState<number>(88.94);
+  const [cacDesejado, setCacDesejado] = useState(18);
+  const [margemLiquidaAlvo, setMargemLiquidaAlvo] = useState(18);
+  const [precoTeste, setPrecoTeste] = useState(119.9);
 
-  // --- Cálculos ---
-  const custoDolarReal = custoProdutoDolar * cotacaoDolar;
-  const custoProdutoReais = custoDolarReal * (1 + taxaIofSpread / 100);
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number.isFinite(value) ? value : 0);
 
-  // Deduções (% somadas)
-  const totalDeducoesPercent = impostosPercent + cartaoPercent + marketingPercent + devolucaoPercent + plataformaPercent;
-  const totalDeducoesFix = custoVendaFix + custoFreteFix + outroCustoFix;
+  const formatPercent = (value: number) => `${(Number.isFinite(value) ? value : 0).toFixed(2)}%`;
 
-  // Lado 1: Calculado por Markup
-  const oscilacaoCambio1 = custoProdutoReais * (oscilacaoCambioPercent / 100);
-  const precoCalculado = (custoProdutoReais + oscilacaoCambio1) * markupDesejado;
-  const lucroBruto1 = precoCalculado - custoProdutoReais;
-  const deducoes1Valor = (precoCalculado * (totalDeducoesPercent / 100)) + totalDeducoesFix;
-  const margemContribuicao1 = precoCalculado - custoProdutoReais - deducoes1Valor;
+  const calc = useMemo(() => {
+    const custoCompraUsd = custoProdutoUsd + freteFornecedorUsd + seguroUsd;
+    const custoCompraBruto = custoCompraUsd * cotacaoDolar;
+    const custoCompraComCambio = custoCompraBruto * (1 + iofSpreadPercent / 100);
+    const impostoImportacao = custoCompraComCambio * (impostoImportacaoPercent / 100);
+    const icms = (custoCompraComCambio + impostoImportacao) * (icmsPercent / 100);
+    const custoProdutoEntregue = custoCompraComCambio + impostoImportacao + icms;
+    const custosFixosOperacao = freteCliente + embalagem + custoOperacional + taxaGatewayFixa;
+    const custoFixoTotal = custoProdutoEntregue + custosFixosOperacao + cacDesejado;
+    const taxasVariaveisPercent = taxaGatewayPercent + taxaPlataformaPercent + impostoVendaPercent + perdasPercent;
+    const divisorPreco = 1 - (taxasVariaveisPercent + margemLiquidaAlvo) / 100;
+    const precoSugerido = divisorPreco > 0 ? custoFixoTotal / divisorPreco : 0;
 
-  // Lado 2: Preço Desejado
-  const oscilacaoCambio2 = custoProdutoReais * (oscilacaoCambioPercent / 100);
-  // Preço Desejado = (Custo + Oscilação) * Markup Calculado
-  const markupCalculado = precoDesejado / (custoProdutoReais + oscilacaoCambio2);
-  const lucroBruto2 = precoDesejado - custoProdutoReais;
-  const deducoes2Valor = (precoDesejado * (totalDeducoesPercent / 100)) + totalDeducoesFix;
-  const margemContribuicao2 = precoDesejado - custoProdutoReais - deducoes2Valor;
+    const calcularResultado = (preco: number) => {
+      const taxasVariaveis = preco * (taxasVariaveisPercent / 100);
+      const lucroLiquido = preco - custoProdutoEntregue - custosFixosOperacao - cacDesejado - taxasVariaveis;
+      const margemLiquida = preco > 0 ? (lucroLiquido / preco) * 100 : 0;
+      const markup = custoProdutoEntregue > 0 ? preco / custoProdutoEntregue : 0;
+      const roiProduto = (custoProdutoEntregue + custosFixosOperacao + cacDesejado) > 0
+        ? (lucroLiquido / (custoProdutoEntregue + custosFixosOperacao + cacDesejado)) * 100
+        : 0;
+      const lucroAntesAds = preco - custoProdutoEntregue - custosFixosOperacao - taxasVariaveis;
+      const cacMaximo = Math.max(0, lucroAntesAds);
+      const roasEquilibrio = cacMaximo > 0 ? preco / cacMaximo : 0;
 
-  // Helper para formatar moeda
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+      return {
+        taxasVariaveis,
+        lucroLiquido,
+        margemLiquida,
+        markup,
+        roiProduto,
+        lucroAntesAds,
+        cacMaximo,
+        roasEquilibrio
+      };
+    };
+
+    return {
+      custoCompraUsd,
+      custoCompraComCambio,
+      impostoImportacao,
+      icms,
+      custoProdutoEntregue,
+      custosFixosOperacao,
+      taxasVariaveisPercent,
+      precoSugerido,
+      sugerido: calcularResultado(precoSugerido),
+      teste: calcularResultado(precoTeste)
+    };
+  }, [
+    custoProdutoUsd,
+    freteFornecedorUsd,
+    seguroUsd,
+    cotacaoDolar,
+    iofSpreadPercent,
+    impostoImportacaoPercent,
+    icmsPercent,
+    freteCliente,
+    embalagem,
+    custoOperacional,
+    taxaGatewayFixa,
+    cacDesejado,
+    taxaGatewayPercent,
+    taxaPlataformaPercent,
+    impostoVendaPercent,
+    perdasPercent,
+    margemLiquidaAlvo,
+    precoTeste
+  ]);
+
+  const NumberField = ({
+    label,
+    value,
+    onChange,
+    icon = 'money',
+    step = '0.01'
+  }: {
+    label: string;
+    value: number;
+    onChange: (value: number) => void;
+    icon?: 'money' | 'percent';
+    step?: string;
+  }) => (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <span className="cyber-label">{label}</span>
+      <div style={{ position: 'relative' }}>
+        {icon === 'percent' ? (
+          <Percent size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+        ) : (
+          <DollarSign size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+        )}
+        <input
+          type="number"
+          step={step}
+          className="cyber-input"
+          style={{ paddingLeft: '34px' }}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+      </div>
+    </label>
+  );
+
+  const Metric = ({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'good' | 'bad' | 'blue' }) => {
+    const color = tone === 'good' ? 'var(--color-primary)' : tone === 'bad' ? '#ff5252' : tone === 'blue' ? '#4da6ff' : '#fff';
+    return (
+      <div style={{ padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+        <div style={{ color, fontWeight: 800, fontSize: '1.05rem' }}>{value}</div>
+      </div>
+    );
   };
 
-  const formatPercent = (value: number) => {
-    return `${value.toFixed(2)}%`;
-  };
+  const ResultPanel = ({ title, price, result, accent }: {
+    title: string;
+    price: number;
+    result: typeof calc.sugerido;
+    accent: string;
+  }) => (
+    <div style={{ border: `1px solid ${accent}`, borderRadius: '10px', overflow: 'hidden' }}>
+      <div style={{ background: `${accent}1a`, borderBottom: `1px solid ${accent}`, padding: '14px 16px' }}>
+        <h3 style={{ margin: 0, color: accent, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <TrendingUp size={18} /> {title}
+        </h3>
+      </div>
+      <div style={{ padding: '16px', display: 'grid', gap: '12px' }}>
+        <Metric label="Preco de venda" value={formatCurrency(price)} tone="blue" />
+        <Metric label="Lucro liquido por pedido" value={formatCurrency(result.lucroLiquido)} tone={result.lucroLiquido >= 0 ? 'good' : 'bad'} />
+        <Metric label="Margem liquida" value={formatPercent(result.margemLiquida)} tone={result.margemLiquida >= margemLiquidaAlvo ? 'good' : 'bad'} />
+        <Metric label="Markup sobre custo entregue" value={`${result.markup.toFixed(2)}x`} />
+        <Metric label="ROI operacional" value={formatPercent(result.roiProduto)} tone={result.roiProduto >= 0 ? 'good' : 'bad'} />
+        <Metric label="CAC maximo para empatar" value={formatCurrency(result.cacMaximo)} tone="blue" />
+        <Metric label="ROAS minimo para empatar" value={`${result.roasEquilibrio.toFixed(2)}x`} />
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ padding: '24px', backgroundColor: 'var(--color-bg-card)', borderRadius: 'var(--radius-lg)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
         <Calculator size={28} className="neon-text" />
         <div>
-          <h2 style={{ color: 'var(--color-primary)', margin: 0 }}>Calculadora de Precificação</h2>
-          <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>Simule seus preços e margens de Dropshipping</p>
+          <h2 style={{ color: 'var(--color-primary)', margin: 0 }}>Calculadora de Precificacao Dropshipping</h2>
+          <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>Calcule custo entregue, preco ideal, lucro, CAC maximo e ROAS de equilibrio.</p>
         </div>
       </div>
 
-      {/* Top Header - Entradas Base */}
-      <div style={{ 
-        display: 'flex', gap: '24px', flexWrap: 'wrap', 
-        backgroundColor: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', marginBottom: '32px',
-        border: '1px solid rgba(255,255,255,0.1)'
-      }}>
-        <div className="form-group" style={{ minWidth: '180px' }}>
-          <label className="cyber-label">Cotação do Dólar HOJE</label>
-          <div style={{ position: 'relative' }}>
-            <DollarSign size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-            <input 
-              type="number" step="0.01" className="cyber-input" style={{ paddingLeft: '36px' }}
-              value={cotacaoDolar} onChange={(e) => setCotacaoDolar(Number(e.target.value))}
-            />
-          </div>
-        </div>
-        <div className="form-group" style={{ minWidth: '180px' }}>
-          <label className="cyber-label">Custo do Produto ($)</label>
-          <div style={{ position: 'relative' }}>
-            <DollarSign size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-            <input 
-              type="number" step="0.01" className="cyber-input" style={{ paddingLeft: '36px' }}
-              value={custoProdutoDolar} onChange={(e) => setCustoProdutoDolar(Number(e.target.value))}
-            />
-          </div>
-        </div>
-        <div className="form-group" style={{ minWidth: '180px' }}>
-          <label className="cyber-label">Taxa IOF / Spread (%)</label>
-          <div style={{ position: 'relative' }}>
-            <Percent size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-            <input 
-              type="number" step="0.1" className="cyber-input" style={{ paddingLeft: '36px' }}
-              value={taxaIofSpread} onChange={(e) => setTaxaIofSpread(Number(e.target.value))}
-            />
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: '180px', paddingLeft: '16px', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Custo Base em Reais (com IOF)</span>
-          <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-text-white)' }}>{formatCurrency(custoProdutoReais)}</span>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <NumberField label="Custo do produto (USD)" value={custoProdutoUsd} onChange={setCustoProdutoUsd} />
+        <NumberField label="Frete fornecedor (USD)" value={freteFornecedorUsd} onChange={setFreteFornecedorUsd} />
+        <NumberField label="Seguro/outros (USD)" value={seguroUsd} onChange={setSeguroUsd} />
+        <NumberField label="Cotacao do dolar" value={cotacaoDolar} onChange={setCotacaoDolar} />
+        <NumberField label="IOF + spread cambial (%)" value={iofSpreadPercent} onChange={setIofSpreadPercent} icon="percent" step="0.1" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-        {/* Lado Esquerdo - Markup */}
-        <div style={{ border: '1px solid var(--color-primary)', borderRadius: '12px', overflow: 'hidden' }}>
-          <div style={{ backgroundColor: 'rgba(69, 230, 39, 0.1)', padding: '16px', borderBottom: '1px solid var(--color-primary)' }}>
-            <h3 style={{ margin: 0, textAlign: 'center', color: 'var(--color-primary)' }}>Preço Calculado por Markup</h3>
-          </div>
-          
-          <div style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Custo do Produto em Reais</span>
-              <strong>{formatCurrency(custoProdutoReais)}</strong>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <NumberField label="Imposto importacao (%)" value={impostoImportacaoPercent} onChange={setImpostoImportacaoPercent} icon="percent" step="0.1" />
+        <NumberField label="ICMS estimado (%)" value={icmsPercent} onChange={setIcmsPercent} icon="percent" step="0.1" />
+        <NumberField label="Frete ao cliente (R$)" value={freteCliente} onChange={setFreteCliente} />
+        <NumberField label="Embalagem/etiqueta (R$)" value={embalagem} onChange={setEmbalagem} />
+        <NumberField label="Operacao por pedido (R$)" value={custoOperacional} onChange={setCustoOperacional} />
+      </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Oscilação de Câmbio</span>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <input type="number" value={oscilacaoCambioPercent} onChange={e => setOscilacaoCambioPercent(Number(e.target.value))} className="cyber-input" style={{ width: '80px', padding: '4px 8px' }} />
-                <span>% =</span>
-                <span style={{ color: '#ff4444' }}>{formatCurrency(oscilacaoCambio1)}</span>
-              </div>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <NumberField label="Gateway/cartao (%)" value={taxaGatewayPercent} onChange={setTaxaGatewayPercent} icon="percent" step="0.1" />
+        <NumberField label="Gateway fixo (R$)" value={taxaGatewayFixa} onChange={setTaxaGatewayFixa} />
+        <NumberField label="Plataforma/checkout (%)" value={taxaPlataformaPercent} onChange={setTaxaPlataformaPercent} icon="percent" step="0.1" />
+        <NumberField label="Imposto sobre venda (%)" value={impostoVendaPercent} onChange={setImpostoVendaPercent} icon="percent" step="0.1" />
+        <NumberField label="Perdas/devolucoes (%)" value={perdasPercent} onChange={setPerdasPercent} icon="percent" step="0.1" />
+      </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--color-text-white)', fontWeight: 'bold' }}>Markup DESEJADO (x)</span>
-              <input type="number" step="0.1" value={markupDesejado} onChange={e => setMarkupDesejado(Number(e.target.value))} className="cyber-input" style={{ width: '100px', borderColor: 'var(--color-primary)' }} />
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px', marginBottom: '24px', padding: '16px', background: 'rgba(69,230,39,0.055)', border: '1px solid rgba(69,230,39,0.16)', borderRadius: '10px' }}>
+        <NumberField label="CAC/ads estimado (R$)" value={cacDesejado} onChange={setCacDesejado} />
+        <NumberField label="Margem liquida alvo (%)" value={margemLiquidaAlvo} onChange={setMargemLiquidaAlvo} icon="percent" step="0.1" />
+        <NumberField label="Preco manual para testar (R$)" value={precoTeste} onChange={setPrecoTeste} />
+      </div>
 
-            <div style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Preço CALCULADO</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.4rem' }}>{formatCurrency(precoCalculado)}</span>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+        <Metric label="Compra total em USD" value={`US$ ${calc.custoCompraUsd.toFixed(2)}`} />
+        <Metric label="Custo com cambio" value={formatCurrency(calc.custoCompraComCambio)} />
+        <Metric label="Imposto importacao" value={formatCurrency(calc.impostoImportacao)} tone="bad" />
+        <Metric label="ICMS estimado" value={formatCurrency(calc.icms)} tone="bad" />
+        <Metric label="Custo entregue" value={formatCurrency(calc.custoProdutoEntregue)} tone="blue" />
+        <Metric label="Taxas variaveis" value={formatPercent(calc.taxasVariaveisPercent)} />
+      </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontStyle: 'italic' }}>
-              <span>Lucro Bruto</span>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <span>{formatCurrency(lucroBruto1)}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{formatPercent((lucroBruto1/precoCalculado)*100 || 0)}</span>
-              </div>
-            </div>
-
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '16px 0' }} />
-
-            {/* Deduções */}
-            <h4 style={{ marginBottom: '16px', color: 'var(--color-text-white)' }}>Deduções</h4>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Impostos</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={impostosPercent} onChange={e => setImpostosPercent(Number(e.target.value))} className="cyber-input" style={{ width: '60px', padding: '2px 8px', height: '24px' }} /> %
-                <span style={{ color: '#ff4444', width: '80px', textAlign: 'right' }}>{formatCurrency(precoCalculado * (impostosPercent/100))}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>% de Cartão</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={cartaoPercent} onChange={e => setCartaoPercent(Number(e.target.value))} className="cyber-input" style={{ width: '60px', padding: '2px 8px', height: '24px' }} /> %
-                <span style={{ color: '#ff4444', width: '80px', textAlign: 'right' }}>{formatCurrency(precoCalculado * (cartaoPercent/100))}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>% de Marketing Ads</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={marketingPercent} onChange={e => setMarketingPercent(Number(e.target.value))} className="cyber-input" style={{ width: '60px', padding: '2px 8px', height: '24px' }} /> %
-                <span style={{ color: '#ff4444', width: '80px', textAlign: 'right' }}>{formatCurrency(precoCalculado * (marketingPercent/100))}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>% Devolução/Canc.</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={devolucaoPercent} onChange={e => setDevolucaoPercent(Number(e.target.value))} className="cyber-input" style={{ width: '60px', padding: '2px 8px', height: '24px' }} /> %
-                <span style={{ color: '#ff4444', width: '80px', textAlign: 'right' }}>{formatCurrency(precoCalculado * (devolucaoPercent/100))}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Comissão Plataforma</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={plataformaPercent} onChange={e => setPlataformaPercent(Number(e.target.value))} className="cyber-input" style={{ width: '60px', padding: '2px 8px', height: '24px' }} /> %
-                <span style={{ color: '#ff4444', width: '80px', textAlign: 'right' }}>{formatCurrency(precoCalculado * (plataformaPercent/100))}</span>
-              </div>
-            </div>
-
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '16px 0' }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Custo de Venda (R$)</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={custoVendaFix} onChange={e => setCustoVendaFix(Number(e.target.value))} className="cyber-input" style={{ width: '80px', padding: '2px 8px', height: '24px' }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Custo de Frete (R$)</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={custoFreteFix} onChange={e => setCustoFreteFix(Number(e.target.value))} className="cyber-input" style={{ width: '80px', padding: '2px 8px', height: '24px' }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
-              <span>Outro Custo (R$)</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" value={outroCustoFix} onChange={e => setOutroCustoFix(Number(e.target.value))} className="cyber-input" style={{ width: '80px', padding: '2px 8px', height: '24px' }} />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontWeight: 'bold' }}>
-              <span>Total de Deduções</span>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <span style={{ color: '#ff4444' }}>{formatCurrency(deducoes1Valor)}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{formatPercent(totalDeducoesPercent + (totalDeducoesFix/precoCalculado*100 || 0))}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Margem de Contribuição</span>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: margemContribuicao1 >= 0 ? 'var(--color-primary)' : '#ff4444' }}>
-                  {formatCurrency(margemContribuicao1)}
-                </span>
-                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                  {formatPercent((margemContribuicao1/precoCalculado)*100 || 0)}
-                </span>
-              </div>
-            </div>
-          </div>
+      {margemLiquidaAlvo + calc.taxasVariaveisPercent >= 100 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '8px', background: 'rgba(255,82,82,0.1)', color: '#ffb4b4', marginBottom: '20px', border: '1px solid rgba(255,82,82,0.25)' }}>
+          <AlertTriangle size={18} />
+          A soma da margem alvo com as taxas variaveis chegou a 100% ou mais. Reduza taxas/margem para calcular um preco viavel.
         </div>
+      )}
 
-        {/* Lado Direito - Preço Desejado */}
-        <div style={{ border: '1px solid #4da6ff', borderRadius: '12px', overflow: 'hidden' }}>
-          <div style={{ backgroundColor: 'rgba(77, 166, 255, 0.1)', padding: '16px', borderBottom: '1px solid #4da6ff' }}>
-            <h3 style={{ margin: 0, textAlign: 'center', color: '#4da6ff' }}>Cálculo de Preço DESEJADO</h3>
-          </div>
-          
-          <div style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Custo do Produto em Reais</span>
-              <strong>{formatCurrency(custoProdutoReais)}</strong>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Oscilação de Câmbio</span>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>{formatPercent(oscilacaoCambioPercent)}</span>
-                <span style={{ color: '#ff4444' }}>{formatCurrency(oscilacaoCambio2)}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', alignItems: 'center' }}>
-              <span style={{ color: 'var(--color-text-white)', fontWeight: 'bold' }}>Markup CALCULADO (x)</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{markupCalculado.toFixed(2)}</span>
-            </div>
-
-            <div style={{ backgroundColor: '#4da6ff', color: '#000', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Preço DESEJADO</span>
-              <input 
-                type="number" step="0.01" 
-                value={precoDesejado} 
-                onChange={e => setPrecoDesejado(Number(e.target.value))} 
-                style={{ width: '140px', fontSize: '1.4rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px', border: 'none', textAlign: 'right' }} 
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontStyle: 'italic' }}>
-              <span>Lucro Bruto</span>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <span>{formatCurrency(lucroBruto2)}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{formatPercent((lucroBruto2/precoDesejado)*100 || 0)}</span>
-              </div>
-            </div>
-
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '16px 0' }} />
-
-            {/* Deduções Espelhadas */}
-            <h4 style={{ marginBottom: '16px', color: 'var(--color-text-white)' }}>Deduções (Calculadas pelo Preço Desejado)</h4>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Impostos ({formatPercent(impostosPercent)})</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(precoDesejado * (impostosPercent/100))}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>% de Cartão ({formatPercent(cartaoPercent)})</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(precoDesejado * (cartaoPercent/100))}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>% de Marketing Ads ({formatPercent(marketingPercent)})</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(precoDesejado * (marketingPercent/100))}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>% Devolução/Canc. ({formatPercent(devolucaoPercent)})</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(precoDesejado * (devolucaoPercent/100))}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Comissão Plataforma ({formatPercent(plataformaPercent)})</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(precoDesejado * (plataformaPercent/100))}</span>
-            </div>
-
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '16px 0' }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Custo de Venda</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(custoVendaFix)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-              <span>Custo de Frete</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(custoFreteFix)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '0.9rem' }}>
-              <span>Outro Custo</span>
-              <span style={{ color: '#ff4444' }}>{formatCurrency(outroCustoFix)}</span>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontWeight: 'bold' }}>
-              <span>Total de Deduções</span>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <span style={{ color: '#ff4444' }}>{formatCurrency(deducoes2Valor)}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{formatPercent(totalDeducoesPercent + (totalDeducoesFix/precoDesejado*100 || 0))}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Margem de Contribuição</span>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: margemContribuicao2 >= 0 ? '#4da6ff' : '#ff4444' }}>
-                  {formatCurrency(margemContribuicao2)}
-                </span>
-                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                  {formatPercent((margemContribuicao2/precoDesejado)*100 || 0)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+        <ResultPanel title="Preco sugerido pela margem alvo" price={calc.precoSugerido} result={calc.sugerido} accent="var(--color-primary)" />
+        <ResultPanel title="Simulacao com preco manual" price={precoTeste} result={calc.teste} accent="#4da6ff" />
       </div>
     </div>
   );

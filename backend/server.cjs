@@ -84,7 +84,7 @@ app.get('/api/health', (req, res) => {
 // MERCADO PAGO: Create payment preference
 app.post('/api/create-preference', async (req, res) => {
   try {
-    const { items, payer, back_urls, auto_return } = req.body;
+    const { items, payer, back_urls, auto_return, payment_methods } = req.body;
 
     // Input validation
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -109,7 +109,8 @@ app.post('/api/create-preference', async (req, res) => {
       items,
       payer,
       back_urls,
-      auto_return
+      auto_return,
+      ...(payment_methods && { payment_methods })
     };
 
     const response = await preference.create({ body });

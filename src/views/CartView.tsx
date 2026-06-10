@@ -126,12 +126,7 @@ const CartView: React.FC<CartViewProps> = ({
     }
 
     // Payment validation
-    if (paymentMethod === 'card') {
-      if (!cardNumber || !cardCvv || !cardName) {
-        addToast('Preencha as coordenadas do cartão de crédito estelar!', 'error');
-        return;
-      }
-    } else if (paymentMethod === 'telepathy') {
+    if (paymentMethod === 'telepathy') {
       if (!telepathySynced) {
         addToast('Sincronize suas ondas cerebrais com a nave-mãe para pagar! 🧠📡', 'error');
         return;
@@ -559,46 +554,16 @@ const CartView: React.FC<CartViewProps> = ({
 
                 {/* Subform: Credit Card */}
                 {paymentMethod === 'card' && (
-                  <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div className="form-group">
-                      <label className="form-label">Número do Cartão Interestelar</label>
-                      <input 
-                        type="text" 
-                        placeholder="0000 0000 0000 0000" 
-                        className="form-input"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
-                        required
-                      />
+                  <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'center' }}>
+                    <div style={{ background: '#fff', padding: '12px', width: '150px', height: '100px', margin: '0 auto 16px auto', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                       <CreditCard size={48} color="var(--color-primary-dark)" />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div className="form-group">
-                        <label className="form-label">Validade Cósmica</label>
-                        <input type="text" placeholder="12/35" className="form-input" required />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">CVV Quântico</label>
-                        <input 
-                          type="password" 
-                          placeholder="999" 
-                          className="form-input"
-                          value={cardCvv}
-                          onChange={(e) => setCardCvv(e.target.value)}
-                          maxLength={4}
-                          required 
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Nome do Comandante Impresso</label>
-                      <input 
-                        type="text" 
-                        placeholder="Comandante Gray" 
-                        className="form-input"
-                        value={cardName}
-                        onChange={(e) => setCardName(e.target.value)}
-                        required 
-                      />
+                    <h4 style={{ color: 'var(--color-primary)', fontSize: '0.9rem', marginBottom: '6px' }}>Checkout Seguro via Mercado Pago</h4>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', marginBottom: '14px' }}>
+                      Você será redirecionado para o ambiente seguro do Mercado Pago para informar os dados do cartão.
+                    </p>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-warning)', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '4px' }}>
+                      💳 Parcele em até 12x (custos de parcelamento por conta do comprador).
                     </div>
                   </div>
                 )}

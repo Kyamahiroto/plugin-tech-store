@@ -56,7 +56,10 @@ export const createMercadoPagoPreference = async (
       failure: 'https://lojaplugin.store/',
       pending: 'https://lojaplugin.store/'
     },
-    auto_return: 'approved'
+    auto_return: 'approved',
+    payment_methods: {
+      installments: 12
+    }
   };
 
   try {

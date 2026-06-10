@@ -56,9 +56,6 @@ const CartView: React.FC<CartViewProps> = ({
   const [city, setCity] = useState('Varginha, MG');
 
   // Step 3 Payment states
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-  const [cardName, setCardName] = useState('');
   const [telepathySynced, setTelepathySynced] = useState(false);
 
   const nationalItems = cartItems.filter(item => item.product.shippingType === 'national');

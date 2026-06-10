@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartItem, Order, UserProfile } from '../types';
-import { Trash2, Plus, Minus, ShieldAlert, Sparkles, Orbit, CreditCard, QrCode, Brain, ArrowLeft, Check } from 'lucide-react';
+import { Trash2, Plus, Minus, ShieldAlert, Orbit, ArrowLeft, Check } from 'lucide-react';
 import { ProductImage } from './HomeView';
 import AuthWall from '../components/AuthWall';
-import { calculateMaxAliencoinDiscount, getAliencoinPurchaseBonus } from '../utils/gamification';
+import { calculateMaxAliencoinDiscount } from '../utils/gamification';
 import { createMercadoPagoPreference } from '../utils/mercadoPago';
 import { sendEmail } from '../utils/email';
 
@@ -22,15 +22,14 @@ const CartView: React.FC<CartViewProps> = ({
   cartItems,
   onUpdateQuantity,
   onRemoveItem,
-  onPlaceOrder,
+  onPlaceOrder: _onPlaceOrder,
   addToast,
   setCurrentView,
   userProfile,
-  onUpdateProfile
+  onUpdateProfile: _onUpdateProfile
 }) => {
   // Step 1: Cart, Step 2: Shipping, Step 3: Payment
   const [checkoutStep, setCheckoutStep] = useState<1 | 2 | 3>(1);
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'card' | 'telepathy'>('pix');
   const [orderBumpAdded, setOrderBumpAdded] = useState(false);
   const [useAliencoins, setUseAliencoins] = useState(false);
   const [useWalletBalance, setUseWalletBalance] = useState(false);
@@ -125,110 +124,33 @@ const CartView: React.FC<CartViewProps> = ({
       return;
     }
 
-    // Create a new simulated order
-    const allItems = orderBumpAdded
-      ? [...cartItems, orderBumpProduct]
-      : [...cartItems];
+    setIsProcessingPayment(true);
+    try {
+      // Envia email de confirmação via Resend
+      await sendEmail(
+        userProfile.email || 'cliente@terracosmica.com',
+        'Sua compra na Plug-in Tech Store está quase pronta!',
+        `<h1>Saudações, ${fullName}!</h1><p>Recebemos o seu pedido intergaláctico. Complete o pagamento para receber seus periféricos: ${cartItems.map(i => i.product.name).join(', ')}.</p>`
+      ).catch(e => console.warn('Falha no email (ignorado)', e));
 
-    const newOrder: Order = {
-      id: `ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-      date: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      items: allItems,
-      total: totalBrl,
-      status: 'processing',
-      shippingAddress: {
+      const initPoint = await createMercadoPagoPreference(
+        cartItems,
         fullName,
-        street,
-        city,
-        portalName: deliveryEstimateStr
-      },
-      shippingFee
-    };
-
-    if (paymentMethod === 'pix' || paymentMethod === 'card') {
-      setIsProcessingPayment(true);
-      try {
-        // Envia email de confirmação via Resend
-        await sendEmail(
-          userProfile.email || 'cliente@terracosmica.com',
-          'Sua compra na Plug-in Tech Store está quase pronta!',
-          `<h1>Saudações, ${fullName}!</h1><p>Recebemos o seu pedido intergaláctico. Complete o pagamento para receber seus periféricos: ${cartItems.map(i => i.product.name).join(', ')}.</p>`
-        ).catch(e => console.warn('Falha no email (ignorado)', e));
-
-        const initPoint = await createMercadoPagoPreference(
-          cartItems,
-          fullName,
-          userProfile.email || '',
-          shippingFee,
-          orderBumpAdded ? orderBumpProduct : null,
-          useAliencoins,
-          useWalletBalance,
-          userProfile.walletBalance || 0,
-          userProfile.aliencoins || 0
-        );
-        window.location.href = initPoint;
-        return;
-      } catch (err) {
-        setIsProcessingPayment(false);
-        addToast('Erro ao redirecionar para o Mercado Pago. Tente novamente.', 'error');
-        return;
-      }
+        userProfile.email || '',
+        shippingFee,
+        orderBumpAdded ? orderBumpProduct : null,
+        useAliencoins,
+        useWalletBalance,
+        userProfile.walletBalance || 0,
+        userProfile.aliencoins || 0
+      );
+      window.location.href = initPoint;
+      return;
+    } catch (err) {
+      setIsProcessingPayment(false);
+      addToast('Erro ao redirecionar para o Mercado Pago. Tente novamente.', 'error');
+      return;
     }
-
-    onPlaceOrder(newOrder);
-
-    // Envia email de confirmação via Resend (para pagamentos diretos)
-    sendEmail(
-      userProfile.email || 'cliente@terracosmica.com',
-      'Pedido Confirmado - Plug-in Tech Store',
-      `<h1>Sintonização Concluída, ${fullName}!</h1><p>Seu pagamento via Telepatia foi processado. Seus itens: ${cartItems.map(i => i.product.name).join(', ')} já estão sendo despachados.</p>`
-    ).catch(e => console.warn('Falha no email (ignorado)', e));
-
-    // Gamification & Wallet Updates (for telepathy/free)
-    const nextWallet = (userProfile.walletBalance || 0) - (useWalletBalance ? maxWalletDiscount : 0);
-    let currentCoins = (userProfile.aliencoins || 0) - (useAliencoins ? maxAliencoins : 0);
-    const currentXp = userProfile.xp || 0;
-
-    // Cálculo de Cashback
-    const baseCoins = Math.floor(totalBrl * 2); // 2 Aliencoins por R$1 gasto
-    const rankBonusPct = getAliencoinPurchaseBonus(currentXp);
-    const rankBonusCoins = Math.floor(baseCoins * rankBonusPct);
-    
-    let extraBonusCoins = 0;
-    if (totalBrl > 1000) extraBonusCoins = 500;
-    else if (totalBrl > 500) extraBonusCoins = 200;
-
-    // Verificar primeira compra
-    let firstPurchaseBonus = 0;
-    const completedTasks = userProfile.gamificationState?.completedTasks || [];
-    if (!completedTasks.includes('t-comp1')) {
-      firstPurchaseBonus = 300;
-      completedTasks.push('t-comp1');
-    }
-
-    const earnedCoins = baseCoins + rankBonusCoins + extraBonusCoins + firstPurchaseBonus;
-    currentCoins += earnedCoins;
-    
-    // Conceder um pouco de XP pela compra
-    const nextXp = currentXp + 150;
-
-    onUpdateProfile({
-      ...userProfile,
-      walletBalance: nextWallet,
-      aliencoins: currentCoins,
-      xp: nextXp,
-      gamificationState: {
-        ...userProfile.gamificationState,
-        completedTasks
-      }
-    });
-
-    if (useWalletBalance && maxWalletDiscount > 0) addToast(`-R$ ${maxWalletDiscount.toFixed(2)} da Carteira Digital aplicados!`, 'success');
-    if (useAliencoins && maxAliencoins > 0) addToast(`-${maxAliencoins} Aliencoins aplicados! 🚀`, 'success');
-    if (earnedCoins > 0) addToast(`+${earnedCoins} Aliencoins recebidos de Cashback! 💰`, 'success');
-
-    addToast('Pedido abduzido com sucesso! Rastreamento ativado. 🛸✨', 'success');
-    setCurrentView('orders');
   };
 
   if (cartItems.length === 0) {

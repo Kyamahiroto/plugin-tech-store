@@ -51,12 +51,9 @@ const CartView: React.FC<CartViewProps> = ({
   };
 
   // Step 2 Address states
-  const [fullName, setFullName] = useState('Terráqueo Silva');
-  const [street, setStreet] = useState('Rua da Abdução, 1947 - Setor Gray');
-  const [city, setCity] = useState('Varginha, MG');
-
-  // Step 3 Payment states
-  const [telepathySynced, setTelepathySynced] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
 
   const nationalItems = cartItems.filter(item => item.product.shippingType === 'national');
   const estimatedItems = cartItems.filter(item => item.product.shippingType !== 'national');
@@ -110,6 +107,12 @@ const CartView: React.FC<CartViewProps> = ({
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
+  useEffect(() => {
+    if (checkoutStep === 3 && !isProcessingPayment) {
+      handleCheckoutSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }
+  }, [checkoutStep]);
+
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cartItems.length === 0) {
@@ -120,14 +123,6 @@ const CartView: React.FC<CartViewProps> = ({
     if (!fullName || !street || !city) {
       addToast('Preencha as coordenadas de destino interestelar, terráqueo!', 'error');
       return;
-    }
-
-    // Payment validation
-    if (paymentMethod === 'telepathy') {
-      if (!telepathySynced) {
-        addToast('Sincronize suas ondas cerebrais com a nave-mãe para pagar! 🧠📡', 'error');
-        return;
-      }
     }
 
     // Create a new simulated order
@@ -495,106 +490,19 @@ const CartView: React.FC<CartViewProps> = ({
             </div>
           )}
 
-          {/* STEP 3: THEMED PAYMENT OPTIONS */}
+          {/* STEP 3: REDIRECT ANIMATION */}
           {checkoutStep === 3 && (
-            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div className="shipping-options-box">
-                <h3 className="checkout-summary-title" style={{ fontSize: '1rem', border: 'none', marginBottom: '16px' }}>
-                  💳 Selecione a Forma de Pagamento Interestelar
-                </h3>
-
-                <div className="payment-methods-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-                  <div 
-                    className={`payment-method-card ${paymentMethod === 'pix' ? 'active' : ''}`}
-                    onClick={() => setPaymentMethod('pix')}
-                    style={{ cursor: 'pointer', padding: '14px', borderRadius: '8px', border: '1.5px solid rgba(255,255,255,0.08)', background: 'var(--color-bg-card)', textAlign: 'center', transition: 'all 0.2s' }}
-                  >
-                    <QrCode size={24} style={{ margin: '0 auto 6px auto', display: 'block', color: paymentMethod === 'pix' ? 'var(--color-primary)' : 'var(--color-text-muted)' }} />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>Pix Quântico</span>
-                  </div>
-
-                  <div 
-                    className={`payment-method-card ${paymentMethod === 'card' ? 'active' : ''}`}
-                    onClick={() => setPaymentMethod('card')}
-                    style={{ cursor: 'pointer', padding: '14px', borderRadius: '8px', border: '1.5px solid rgba(255,255,255,0.08)', background: 'var(--color-bg-card)', textAlign: 'center', transition: 'all 0.2s' }}
-                  >
-                    <CreditCard size={24} style={{ margin: '0 auto 6px auto', display: 'block', color: paymentMethod === 'card' ? 'var(--color-primary)' : 'var(--color-text-muted)' }} />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>Cartão Cloro</span>
-                  </div>
-
-                  <div 
-                    className={`payment-method-card ${paymentMethod === 'telepathy' ? 'active' : ''}`}
-                    onClick={() => setPaymentMethod('telepathy')}
-                    style={{ cursor: 'pointer', padding: '14px', borderRadius: '8px', border: '1.5px solid rgba(255,255,255,0.08)', background: 'var(--color-bg-card)', textAlign: 'center', transition: 'all 0.2s' }}
-                  >
-                    <Brain size={24} style={{ margin: '0 auto 6px auto', display: 'block', color: paymentMethod === 'telepathy' ? 'var(--color-primary)' : 'var(--color-text-muted)' }} />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#fff' }}>Telepatia</span>
-                  </div>
-                </div>
-
-                {/* Subform: Pix */}
-                {paymentMethod === 'pix' && (
-                  <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
-                    <div style={{ background: '#fff', padding: '12px', width: '150px', height: '150px', margin: '0 auto 16px auto', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {/* Fake pixelated green layout inside */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', width: '100%', height: '100%' }}>
-                        {Array.from({ length: 25 }).map((_, i) => (
-                          <div key={i} style={{ background: (i % 3 === 0 || i % 7 === 0) ? 'var(--color-primary-dark)' : '#0b0f19', opacity: 0.85, borderRadius: '2px' }} />
-                        ))}
-                      </div>
-                    </div>
-                    <h4 style={{ color: 'var(--color-primary)', fontSize: '0.9rem', marginBottom: '6px' }}>QR Code de Confirmação Teletransportado</h4>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', marginBottom: '14px' }}>
-                      Aponte a lente do seu comunicador cósmico para ler o Pix.
-                    </p>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '4px', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                      chave-pix-varginha-area51@plugin.tech
-                    </div>
-                  </div>
-                )}
-
-                {/* Subform: Credit Card */}
-                {paymentMethod === 'card' && (
-                  <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'center' }}>
-                    <div style={{ background: '#fff', padding: '12px', width: '150px', height: '100px', margin: '0 auto 16px auto', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                       <CreditCard size={48} color="var(--color-primary-dark)" />
-                    </div>
-                    <h4 style={{ color: 'var(--color-primary)', fontSize: '0.9rem', marginBottom: '6px' }}>Checkout Seguro via Mercado Pago</h4>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', marginBottom: '14px' }}>
-                      Você será redirecionado para o ambiente seguro do Mercado Pago para informar os dados do cartão.
-                    </p>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-warning)', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '4px' }}>
-                      💳 Parcele em até 12x (custos de parcelamento por conta do comprador).
-                    </div>
-                  </div>
-                )}
-
-                {/* Subform: Telepathy */}
-                {paymentMethod === 'telepathy' && (
-                  <div className="glass-panel" style={{ padding: '24px', textAlign: 'center' }}>
-                    <div className={`telepathy-orb ${telepathySynced ? 'synced' : 'pulsing'}`} style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 16px auto', background: 'radial-gradient(circle, rgba(69,230,39,0.8) 0%, rgba(11,15,25,0) 70%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Brain size={36} color="#fff" />
-                    </div>
-                    <h4 style={{ color: 'var(--color-primary)', fontSize: '0.9rem', marginBottom: '8px' }}>
-                      {telepathySynced ? 'Ondas Cerebrais Sincronizadas! 📡🧠' : 'Canal Astral Desconectado'}
-                    </h4>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', marginBottom: '16px', maxWidth: '340px', margin: '0 auto 16px auto' }}>
-                      Pressione o botão abaixo, feche seus olhos (ou os três olhos) e mentalize o débito de créditos do seu saldo.
-                    </p>
-                    <button 
-                      type="button"
-                      className="outline-btn"
-                      onClick={() => {
-                        setTelepathySynced(true);
-                        addToast('Cérebro sintonizado com o caixa quântico! Ondas liberadas. 🧠🛸', 'success');
-                      }}
-                      style={{ padding: '10px 20px', fontSize: '0.8rem', borderColor: telepathySynced ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)' }}
-                    >
-                      {telepathySynced ? '✓ CÉREBRO CONECTADO' : 'SINCRONIZAR PENSAMENTO'}
-                    </button>
-                  </div>
-                )}
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', justifyContent: 'center', padding: '40px 0' }}>
+              <div className="cyber-render animate-ufo" style={{ width: '80px', height: '80px', color: 'var(--color-primary)' }}>
+                <div className="cyber-render-halo" />
+                <Orbit size={40} />
               </div>
+              <h3 className="neon-text" style={{ fontSize: '1.2rem', textAlign: 'center' }}>
+                Preparando Portal de Pagamento...
+              </h3>
+              <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', fontSize: '0.9rem' }}>
+                Você está sendo abduzido para o ambiente seguro do Mercado Pago.
+              </p>
             </div>
           )}
 
@@ -619,7 +527,7 @@ const CartView: React.FC<CartViewProps> = ({
             <span>{deliveryEstimateStr}</span>
           </div>
 
-          {maxAliencoins > 0 && checkoutStep === 3 && (
+          {maxAliencoins > 0 && checkoutStep >= 2 && (
             <div className="checkout-row aliencoin-discount" style={{ marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px', color: 'var(--color-warning)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>
                 <input 
@@ -636,7 +544,7 @@ const CartView: React.FC<CartViewProps> = ({
             </div>
           )}
 
-          {walletAvailable > 0 && checkoutStep === 3 && (
+          {walletAvailable > 0 && checkoutStep >= 2 && (
             <div className="checkout-row wallet-discount" style={{ marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px', color: '#a78bfa' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>
                 <input 
@@ -706,19 +614,11 @@ const CartView: React.FC<CartViewProps> = ({
             {checkoutStep === 3 && (
               <>
                 <button 
-                  onClick={handleCheckoutSubmit}
+                  disabled
                   className="neon-glow-btn"
-                  style={{ width: '100%', padding: '14px' }}
-                  disabled={isProcessingPayment}
+                  style={{ width: '100%', padding: '14px', opacity: 0.8 }}
                 >
-                  {isProcessingPayment ? 'PROCESSANDO PAGAMENTO...' : <><Sparkles size={16} /> CONCLUIR PEDIDO CÓSMICO</>}
-                </button>
-                <button 
-                  onClick={handlePrevStep}
-                  className="outline-btn"
-                  style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                >
-                  <ArrowLeft size={14} /> Voltar para Envio
+                  PROCESSANDO...
                 </button>
               </>
             )}

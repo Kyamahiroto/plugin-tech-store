@@ -6,46 +6,32 @@ export const createMercadoPagoPreference = async (
   payerName: string,
   payerEmail: string,
   shippingFee: number,
-  orderBumpItem?: CartItem | null
+  orderBumpItem?: CartItem | null,
+  useAliencoins: boolean = false,
+  useWalletBalance: boolean = false,
+  walletAvailable: number = 0,
+  aliencoinsAvailable: number = 0
 ) => {
-  // Format items for Mercado Pago
+  // Format items for Backend (Sending ONLY id and quantity to prevent price manipulation)
   const items = cartItems.map(item => ({
-    title: item.product.name,
-    description: item.product.description.substring(0, 250),
-    picture_url: item.product.image.startsWith('http') ? item.product.image : '',
-    category_id: item.product.category,
-    quantity: item.quantity,
-    currency_id: 'BRL',
-    unit_price: Number(item.product.price.toFixed(2))
+    id: item.product.id,
+    quantity: item.quantity
   }));
 
   if (orderBumpItem) {
     items.push({
-      title: orderBumpItem.product.name,
-      description: orderBumpItem.product.description.substring(0, 250),
-      picture_url: orderBumpItem.product.image.startsWith('http') ? orderBumpItem.product.image : '',
-      category_id: orderBumpItem.product.category,
-      quantity: orderBumpItem.quantity,
-      currency_id: 'BRL',
-      unit_price: Number(orderBumpItem.product.price.toFixed(2))
-    });
-  }
-
-  // Add shipping fee as an item if greater than 0
-  if (shippingFee > 0) {
-    items.push({
-      title: 'Taxa de Entrega',
-      description: 'Custo do portal de despacho interestelar',
-      picture_url: '',
-      category_id: 'shipping',
-      quantity: 1,
-      currency_id: 'BRL',
-      unit_price: Number(shippingFee.toFixed(2))
+      id: orderBumpItem.product.id,
+      quantity: orderBumpItem.quantity
     });
   }
 
   const preference = {
     items,
+    shippingFee,
+    useAliencoins,
+    useWalletBalance,
+    walletAvailable,
+    aliencoinsAvailable,
     payer: {
       name: payerName.split(' ')[0] || 'Terráqueo',
       surname: payerName.split(' ').slice(1).join(' ') || 'Anônimo',

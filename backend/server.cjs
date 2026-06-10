@@ -6,6 +6,7 @@ const { MercadoPagoConfig, Preference } = require('mercadopago');
 const { Resend } = require('resend');
 const emailService = require('./services/emailService.cjs');
 require('dotenv').config();
+const productsDb = require('./products.json');
 
 const app = express();
 
@@ -84,7 +85,7 @@ app.get('/api/health', (req, res) => {
 // MERCADO PAGO: Create payment preference
 app.post('/api/create-preference', async (req, res) => {
   try {
-    const { items, payer, back_urls, auto_return, payment_methods } = req.body;
+    const { items, payer, back_urls, auto_return, payment_methods, shippingFee = 0, useAliencoins = false, useWalletBalance = false, walletAvailable = 0, aliencoinsAvailable = 0 } = req.body;
 
     // Input validation
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -95,18 +96,79 @@ app.post('/api/create-preference', async (req, res) => {
       return res.status(400).json({ error: 'Dados do pagador inválidos.' });
     }
 
-    // Validate each item has required fields
+    // Server-side price calculation
+    let calculatedTotal = 0;
+    const preferenceItems = [];
+
     for (const item of items) {
-      if (!item.title || typeof item.unit_price !== 'number' || item.unit_price <= 0) {
-        return res.status(400).json({ error: 'Item com dados inválidos.' });
+      const dbProduct = productsDb.find(p => p.id === item.id);
+      if (!dbProduct) {
+        return res.status(400).json({ error: `Produto não encontrado no banco de dados: ${item.id}` });
       }
       if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
         return res.status(400).json({ error: 'Quantidade de item inválida.' });
       }
+
+      calculatedTotal += dbProduct.price * item.quantity;
+      preferenceItems.push({
+        title: dbProduct.name,
+        category_id: dbProduct.category,
+        quantity: item.quantity,
+        currency_id: 'BRL',
+        unit_price: Number(dbProduct.price.toFixed(2))
+      });
+    }
+
+    if (shippingFee > 0) {
+      calculatedTotal += shippingFee;
+      preferenceItems.push({
+        title: 'Taxa de Entrega',
+        description: 'Custo do portal de despacho interestelar',
+        category_id: 'shipping',
+        quantity: 1,
+        currency_id: 'BRL',
+        unit_price: Number(shippingFee.toFixed(2))
+      });
+    }
+
+    // Gamification & Wallet Validation (Mock Backend Validation)
+    let aliencoinDiscount = 0;
+    let walletDiscount = 0;
+
+    if (useAliencoins) {
+      // Regra de negócio real: 100 aliencoins = R$1, max 15% do total
+      const maxDiscountBrl = calculatedTotal * 0.15;
+      const requestedDiscountBrl = aliencoinsAvailable / 100;
+      aliencoinDiscount = Math.min(requestedDiscountBrl, maxDiscountBrl);
+    }
+
+    if (useWalletBalance) {
+      const remainingTotal = calculatedTotal - aliencoinDiscount;
+      walletDiscount = Math.min(walletAvailable, remainingTotal);
+    }
+
+    const totalDiscount = aliencoinDiscount + walletDiscount;
+
+    // Apply discount proportionally to items (Mercado Pago doesn't accept negative value items)
+    if (totalDiscount > 0) {
+      let discountLeft = totalDiscount;
+      for (const item of preferenceItems) {
+        const itemTotal = item.unit_price * item.quantity;
+        if (discountLeft >= itemTotal - (0.01 * item.quantity)) { 
+           const discountToApply = itemTotal - (0.01 * item.quantity);
+           item.unit_price = 0.01;
+           discountLeft -= discountToApply;
+        } else {
+           const discountPerUnit = discountLeft / item.quantity;
+           item.unit_price = Number((item.unit_price - discountPerUnit).toFixed(2));
+           discountLeft = 0;
+           break;
+        }
+      }
     }
 
     const body = {
-      items,
+      items: preferenceItems,
       payer,
       back_urls,
       auto_return,
@@ -159,6 +221,22 @@ app.post('/api/send-email', emailLimiter, async (req, res) => {
     console.error('Error sending email via Resend:', error);
     res.status(500).json({ error: 'Falha ao enviar e-mail intergaláctico.' });
   }
+});
+
+// MERCADO PAGO: Webhook receiver
+app.post('/api/webhook/mercadopago', async (req, res) => {
+  const paymentId = req.query.id || req.body?.data?.id;
+  const topic = req.query.topic || req.body?.type;
+  
+  if (topic === 'payment' && paymentId) {
+    console.log(`[WEBHOOK] Recebido evento de pagamento ID: ${paymentId}`);
+    // Futuro: Verificar assinatura do webhook com x-signature
+    // Futuro: Buscar pagamento na API do MP e atualizar status no Supabase
+    // const paymentData = await client.payment.get({ id: paymentId });
+    // updateOrder(paymentData.external_reference, 'approved');
+  }
+  
+  res.status(200).send('OK');
 });
 
 // ========================================

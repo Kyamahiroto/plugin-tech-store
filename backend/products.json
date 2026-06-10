@@ -1,0 +1,86 @@
+[
+  {
+    "id": "prod-headset-x9",
+    "name": "Headset Gamer Alien Pro 7.1",
+    "price": 189.90,
+    "category": "audio",
+    "image": "headset"
+  },
+  {
+    "id": "prod-stick-retro",
+    "name": "Console Stick 4K Wireless Retro",
+    "price": 187.50,
+    "category": "games",
+    "image": "console"
+  },
+  {
+    "id": "prod-orelha-gato",
+    "name": "Fone Bluetooth Orelha de Gato Cyber",
+    "price": 149.90,
+    "category": "audio",
+    "image": "cat-headphones"
+  },
+  {
+    "id": "prod-teclado-glow",
+    "name": "Teclado Mecânico CyberGlow RGB",
+    "price": 299.90,
+    "category": "teclados",
+    "image": "keyboard"
+  },
+  {
+    "id": "prod-mouse-radar",
+    "name": "Mouse Gamer Alien Radar 12k DPI",
+    "price": 115.00,
+    "category": "mouses",
+    "image": "mouse"
+  },
+  {
+    "id": "prod-antena-extraterrestre",
+    "name": "Antena de Sintonização de Wi-Fi Interestelar",
+    "price": 89.90,
+    "category": "perifericos",
+    "image": "antenna"
+  },
+  {
+    "id": "prod-oculos-vr",
+    "name": "Óculos VR Holográfico de Simulação da Terra",
+    "price": 499.00,
+    "category": "games",
+    "image": "vr-headset"
+  },
+  {
+    "id": "prod-gift-steam",
+    "name": "Gift Card Steam R$ 50",
+    "price": 50.00,
+    "category": "giftcard",
+    "image": "steam"
+  },
+  {
+    "id": "prod-gift-xbox",
+    "name": "Gift Card Xbox R$ 100",
+    "price": 100.00,
+    "category": "giftcard",
+    "image": "console"
+  },
+  {
+    "id": "prod-gift-spotify",
+    "name": "Gift Card Spotify R$ 30",
+    "price": 30.00,
+    "category": "giftcard",
+    "image": "audio"
+  },
+  {
+    "id": "prod-gift-netflix",
+    "name": "Gift Card Netflix R$ 70",
+    "price": 70.00,
+    "category": "giftcard",
+    "image": "vr-headset"
+  },
+  {
+    "id": "prod-cabo-rgb",
+    "name": "Cabo USB-C Galáctico RGB 2m",
+    "price": 29.90,
+    "category": "acessorios",
+    "image": "antenna"
+  }
+]

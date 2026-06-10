@@ -168,7 +168,11 @@ const CartView: React.FC<CartViewProps> = ({
           fullName,
           userProfile.email || '',
           shippingFee,
-          orderBumpAdded ? orderBumpProduct : null
+          orderBumpAdded ? orderBumpProduct : null,
+          useAliencoins,
+          useWalletBalance,
+          userProfile.walletBalance || 0,
+          userProfile.aliencoins || 0
         );
         window.location.href = initPoint;
         return;

@@ -10,6 +10,7 @@ export interface Product {
   category: string;
   discount?: number;
   isNew?: boolean;
+  isActive?: boolean;
   stock: number;
   specs?: Record<string, string>;
   funnyReview?: {

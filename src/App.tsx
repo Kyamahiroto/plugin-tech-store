@@ -224,6 +224,7 @@ function App() {
             image: p.image,
             category: p.category,
             isNew: !!p.is_new,
+            isActive: p.is_active !== false,
             stock: Number(p.stock),
             specs: typeof p.specs === 'string' ? JSON.parse(p.specs) : p.specs,
             funnyReview: typeof p.funny_review === 'string' ? JSON.parse(p.funny_review) : p.funny_review,
@@ -572,6 +573,11 @@ function App() {
   // Handlers: Cart
   // ----------------------------------------------------
   const handleAddToCart = (product: Product) => {
+    if (product.isActive === false) {
+      addToast(`Produto ${product.name} estÃ¡ desativado no momento.`, 'error');
+      return;
+    }
+
     if (product.stock <= 0) {
       addToast(`Equipamento ${product.name} esgotado em órbita! 🛰️🌀`, 'error');
       return;
@@ -821,6 +827,7 @@ function App() {
         image: newProduct.image,
         category: newProduct.category,
         is_new: newProduct.isNew,
+        is_active: newProduct.isActive !== false,
         stock: newProduct.stock,
         specs: newProduct.specs,
         funny_review: newProduct.funnyReview,
@@ -859,6 +866,7 @@ function App() {
         image: updatedProduct.image,
         category: updatedProduct.category,
         is_new: updatedProduct.isNew,
+        is_active: updatedProduct.isActive !== false,
         stock: updatedProduct.stock,
         specs: updatedProduct.specs,
         funny_review: updatedProduct.funnyReview,
@@ -1039,7 +1047,7 @@ function App() {
       case 'home':
         return (
           <HomeView
-            products={products}
+            products={visibleProducts}
             categories={categories}
             banners={banners}
             favorites={favorites}
@@ -1076,7 +1084,7 @@ function App() {
       case 'favorites':
         return (
           <FavoritesView
-            products={products}
+            products={visibleProducts}
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
             onAddToCart={handleAddToCart}
@@ -1111,7 +1119,7 @@ function App() {
         return (
           <ProductDetailView
             productId={selectedProductId || ''}
-            products={products}
+            products={visibleProducts}
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
             onAddToCart={handleAddToCart}
@@ -1130,7 +1138,7 @@ function App() {
       case 'shop':
         return (
           <ShopView
-            products={products}
+            products={visibleProducts}
             categories={categories}
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
@@ -1146,7 +1154,7 @@ function App() {
       case 'setup-quiz':
         return (
           <SetupQuizView
-            products={products}
+            products={visibleProducts}
             categories={categories}
             quizConfig={quizConfig}
             onComplete={(result) => {
@@ -1178,6 +1186,7 @@ function App() {
 
   // Cart total item count calculation
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const visibleProducts = products.filter(product => product.isActive !== false);
 
   // -------------------------------------------------------
   // ADMIN ROUTE: /painel-admin-loja-plugin
@@ -1276,7 +1285,7 @@ function App() {
         onLogout={handleLogout}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        products={products}
+        products={visibleProducts}
         onSelectProduct={handleViewProduct}
         onSelectCategoryClick={(slug) => {
           setSearchQuery('');

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Product, Category, ProductType } from '../../types';
-import { Plus, Edit2, Trash2, X, Save, Package, Zap, Link } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Package, Zap, Link, EyeOff, Eye } from 'lucide-react';
 import { fileToBase64 } from '../../utils/imageUpload';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { ProductImage } from '../HomeView';
 
 interface AdminProductsProps {
   products: Product[];
@@ -16,7 +17,7 @@ interface AdminProductsProps {
 
 const EMPTY: Partial<Product> = {
   name: '', description: '', price: 0, oldPrice: 0, discount: 0,
-  stock: 10, isNew: false, image: 'cpu', category: 'audio',
+  stock: 10, isNew: false, isActive: true, image: 'cpu', category: 'audio',
   type: 'fisico', affiliateLink: '', virtualContent: '',
   orderBumpId: '', orderBumpDiscount: 10, gallery: [], variations: [],
   videoUrl: '', specs: {},
@@ -27,6 +28,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<Product>>(EMPTY);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const set = (k: keyof Product, v: any) => setForm(f => ({ ...f, [k]: v }));
 
@@ -43,7 +45,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
       discount: form.discount ? Number(form.discount) : undefined,
       image: form.image || 'cpu',
       category: form.category || 'audio',
-      isNew: !!form.isNew, stock: Number(form.stock || 10),
+      isNew: !!form.isNew, isActive: form.isActive !== false, stock: Number(form.stock || 10),
       type: form.type || 'fisico',
       affiliateLink: form.affiliateLink || undefined,
       virtualContent: form.virtualContent || undefined,
@@ -66,6 +68,36 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
 
   const typeColor: Record<ProductType, string> = { fisico: '#45e627', virtual: '#a78bfa', afiliado: '#fb923c' };
   const typeLabel: Record<ProductType, string> = { fisico: 'Físico', virtual: 'Virtual', afiliado: 'Afiliado' };
+
+  const selectedProducts = products.filter(p => selectedIds.includes(p.id));
+  const allSelected = products.length > 0 && selectedIds.length === products.length;
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAll = () => {
+    setSelectedIds(allSelected ? [] : products.map(p => p.id));
+  };
+
+  const handleBulkDeactivate = () => {
+    selectedProducts.forEach(product => onUpdate({ ...product, isActive: false }));
+    addToast(`${selectedProducts.length} produto(s) desativado(s).`, 'success');
+    setSelectedIds([]);
+  };
+
+  const handleBulkActivate = () => {
+    selectedProducts.forEach(product => onUpdate({ ...product, isActive: true }));
+    addToast(`${selectedProducts.length} produto(s) ativado(s).`, 'success');
+    setSelectedIds([]);
+  };
+
+  const handleBulkDelete = () => {
+    if (!window.confirm(`Excluir ${selectedProducts.length} produto(s) selecionado(s)?`)) return;
+    selectedProducts.forEach(product => onDelete(product.id));
+    addToast(`${selectedProducts.length} produto(s) removido(s).`, 'error');
+    setSelectedIds([]);
+  };
 
   return (
     <div className="admin-section">
@@ -459,6 +491,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
                   <input type="checkbox" checked={!!form.isNew} onChange={e => set('isNew', e.target.checked)} />
                   Marcar como NOVO
                 </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <input type="checkbox" checked={form.isActive !== false} onChange={e => set('isActive', e.target.checked)} />
+                  Produto ativo na loja
+                </label>
               </div>
 
               <div className="admin-form-actions">
@@ -472,7 +508,79 @@ const AdminProducts: React.FC<AdminProductsProps> = ({ products, categories, onA
         </div>
       )}
 
+      {selectedIds.length > 0 && (
+        <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 16px', marginBottom: '16px', border: '1px solid rgba(69,230,39,0.22)' }}>
+          <strong style={{ color: 'var(--color-primary)' }}>{selectedIds.length} produto(s) selecionado(s)</strong>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button type="button" className="outline-btn" onClick={handleBulkActivate} style={{ padding: '8px 12px' }}>
+              <Eye size={15} /> Ativar
+            </button>
+            <button type="button" className="outline-btn" onClick={handleBulkDeactivate} style={{ padding: '8px 12px' }}>
+              <EyeOff size={15} /> Desativar
+            </button>
+            <button type="button" className="admin-icon-btn danger" onClick={handleBulkDelete} style={{ width: 'auto', padding: '8px 12px' }}>
+              <Trash2 size={15} /> Excluir
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="admin-table-wrapper">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" checked={allSelected} onChange={toggleAll} /></th>
+              <th>Nome</th>
+              <th>Status</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Preco</th>
+              <th>Estoque</th>
+              <th>Order Bump</th>
+              <th>Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map(p => (
+              <tr key={p.id} style={{ opacity: p.isActive === false ? 0.55 : 1 }}>
+                <td><input type="checkbox" checked={selectedIds.includes(p.id)} onChange={() => toggleSelected(p.id)} /></td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '220px' }}>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+                      <ProductImage type={p.image} colorStyle={p.category === 'teclados' ? 'blue' : p.category === 'games' ? 'orange' : 'green'} />
+                    </div>
+                    <strong>{p.name}</strong>
+                  </div>
+                </td>
+                <td>
+                  <span className="admin-type-chip" style={{ '--chip-color': p.isActive === false ? '#ff5252' : '#45e627' } as any}>
+                    {p.isActive === false ? 'Inativo' : 'Ativo'}
+                  </span>
+                </td>
+                <td><span className="admin-type-chip" style={{ '--chip-color': typeColor[p.type || 'fisico'] } as any}>{typeLabel[p.type || 'fisico']}</span></td>
+                <td>{p.category}</td>
+                <td>R$ {p.price.toFixed(2).replace('.', ',')}</td>
+                <td>
+                  {p.type === 'afiliado' ? '-' : (
+                    <div style={{ color: (p.stock || 0) <= 5 ? '#a78bfa' : 'inherit', fontWeight: (p.stock || 0) <= 5 ? 'bold' : 'normal' }}>
+                      {p.stock} {(p.stock || 0) <= 5 && <span style={{ fontSize: '0.7rem', display: 'block', color: '#a78bfa' }}>Ultimas Pecas</span>}
+                    </div>
+                  )}
+                </td>
+                <td>{p.orderBumpId ? `${products.find(x => x.id === p.orderBumpId)?.name || p.orderBumpId} (-${p.orderBumpDiscount}%)` : '-'}</td>
+                <td>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="admin-icon-btn" onClick={() => openEdit(p)} title="Editar"><Edit2 size={15} /></button>
+                    <button className="admin-icon-btn danger" onClick={() => { onDelete(p.id); addToast('Produto removido.', 'error'); }} title="Deletar"><Trash2 size={15} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="admin-table-wrapper" style={{ display: 'none' }}>
         <table className="admin-table">
           <thead><tr><th>Nome</th><th>Tipo</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Order Bump</th><th>Ações</th></tr></thead>
           <tbody>

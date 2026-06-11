@@ -50,6 +50,7 @@ CREATE TABLE public.products (
     image TEXT NOT NULL,
     category TEXT REFERENCES public.categories(slug) ON UPDATE CASCADE ON DELETE RESTRICT,
     is_new BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
     stock INTEGER DEFAULT 0,
     specs JSONB DEFAULT '{}'::jsonb,
     funny_review JSONB,

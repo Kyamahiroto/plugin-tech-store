@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CartItem, Order, UserProfile } from '../types';
-import { Trash2, Plus, Minus, ShieldAlert, Orbit, ArrowLeft, Check } from 'lucide-react';
+import { Trash2, Plus, Minus, ShieldAlert, Orbit, ArrowLeft, Check, Coins } from 'lucide-react';
 import { ProductImage } from './HomeView';
 import AuthWall from '../components/AuthWall';
 import { calculateMaxAliencoinDiscount } from '../utils/gamification';
@@ -75,14 +75,22 @@ const CartView: React.FC<CartViewProps> = ({
   }
   
   const baseTotalBrl = subtotal + shippingFee + orderBumpPrice;
-  const maxAliencoins = calculateMaxAliencoinDiscount(baseTotalBrl, userProfile.aliencoins || 0);
+  const aliencoinsAvailable = userProfile.aliencoins || 0;
+  const maxAliencoins = calculateMaxAliencoinDiscount(baseTotalBrl, aliencoinsAvailable);
   const aliencoinDiscountBrl = useAliencoins ? maxAliencoins / 100 : 0;
+  const aliencoinsAvailableBrl = aliencoinsAvailable / 100;
   
   const walletAvailable = userProfile.walletBalance || 0;
   const maxWalletDiscount = Math.min(walletAvailable, baseTotalBrl - aliencoinDiscountBrl);
   const walletDiscountBrl = useWalletBalance ? maxWalletDiscount : 0;
   
   const totalBrl = baseTotalBrl - aliencoinDiscountBrl - walletDiscountBrl;
+
+  useEffect(() => {
+    if (maxAliencoins <= 0 && useAliencoins) {
+      setUseAliencoins(false);
+    }
+  }, [maxAliencoins, useAliencoins]);
 
   const handleNextStep = () => {
     if (checkoutStep === 1) {
@@ -362,6 +370,37 @@ const CartView: React.FC<CartViewProps> = ({
                     </div>
                   </div>
 
+                  <div className={`aliencoins-checkout-card ${useAliencoins ? 'active' : ''} ${maxAliencoins <= 0 ? 'disabled' : ''}`}>
+                    <label className="aliencoins-checkout-label">
+                      <input
+                        type="checkbox"
+                        checked={useAliencoins}
+                        disabled={maxAliencoins <= 0}
+                        onChange={(e) => setUseAliencoins(e.target.checked)}
+                      />
+                      <span className="aliencoins-checkout-icon">
+                        <Coins size={24} />
+                      </span>
+                      <span className="aliencoins-checkout-content">
+                        <span className="aliencoins-checkout-title">Usar carteira digital Aliencoins</span>
+                        <span className="aliencoins-checkout-desc">
+                          Disponivel: {aliencoinsAvailable.toLocaleString('pt-BR')} Aliencoins
+                          {' '}≈ R$ {aliencoinsAvailableBrl.toFixed(2).replace('.', ',')}
+                        </span>
+                      </span>
+                      <span className="aliencoins-checkout-value">
+                        {maxAliencoins > 0
+                          ? `- R$ ${(maxAliencoins / 100).toFixed(2).replace('.', ',')}`
+                          : 'Sem saldo'}
+                      </span>
+                    </label>
+                    <div className="aliencoins-checkout-note">
+                      {maxAliencoins > 0
+                        ? 'Os Aliencoins ajudam a pagar o pedido com limite de 15% do total.'
+                        : 'Conclua missoes ou ganhe cashback para acumular Aliencoins.'}
+                    </div>
+                  </div>
+
                   {/* Computed Shipping Display */}
                   <div className="shipping-options-box">
                     <h3 className="checkout-summary-title" style={{ fontSize: '1rem', border: 'none', marginBottom: '14px' }}>
@@ -451,15 +490,7 @@ const CartView: React.FC<CartViewProps> = ({
 
           {maxAliencoins > 0 && checkoutStep >= 2 && (
             <div className="checkout-row aliencoin-discount" style={{ marginTop: '12px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '12px', color: 'var(--color-warning)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                <input 
-                  type="checkbox" 
-                  checked={useAliencoins} 
-                  onChange={(e) => setUseAliencoins(e.target.checked)} 
-                  style={{ accentColor: 'var(--color-warning)' }}
-                />
-                Aplicar Aliencoins (Máx 15%)
-              </label>
+              <span style={{ fontSize: '0.85rem' }}>Aliencoins</span>
               {useAliencoins && (
                 <span>- R$ {aliencoinDiscountBrl.toFixed(2).replace('.', ',')}</span>
               )}

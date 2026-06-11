@@ -2928,6 +2928,100 @@
   background: rgba(69, 230, 39, 0.03) !important;
 }
 
+.aliencoins-checkout-card {
+  border: 1.5px solid rgba(251, 191, 36, 0.28);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(255, 255, 255, 0.02));
+  padding: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.aliencoins-checkout-card.active {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.18);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.13), rgba(69, 230, 39, 0.04));
+}
+
+.aliencoins-checkout-card.disabled {
+  opacity: 0.72;
+}
+
+.aliencoins-checkout-label {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.aliencoins-checkout-label input {
+  accent-color: var(--color-warning);
+}
+
+.aliencoins-checkout-label:has(input:disabled) {
+  cursor: not-allowed;
+}
+
+.aliencoins-checkout-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-warning);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  flex-shrink: 0;
+}
+
+.aliencoins-checkout-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aliencoins-checkout-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.aliencoins-checkout-desc,
+.aliencoins-checkout-note {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.aliencoins-checkout-value {
+  color: var(--color-warning);
+  font-family: var(--font-display);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.aliencoins-checkout-note {
+  margin-top: 12px;
+  padding-left: 84px;
+}
+
+@media (max-width: 640px) {
+  .aliencoins-checkout-label {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+
+  .aliencoins-checkout-value {
+    grid-column: 3;
+    justify-self: start;
+  }
+
+  .aliencoins-checkout-note {
+    padding-left: 0;
+  }
+}
+
 /* Telepathy animations */
 .telepathy-orb.pulsing {
   animation: floatOrb 2.5s infinite ease-in-out, pulseGlowing 2s infinite alternate;

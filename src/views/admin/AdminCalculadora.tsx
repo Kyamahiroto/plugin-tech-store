@@ -2,27 +2,27 @@ import React, { useMemo, useState } from 'react';
 import { Calculator, DollarSign, Percent, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const AdminCalculadora: React.FC = () => {
-  const [custoProdutoUsd, setCustoProdutoUsd] = useState(8);
-  const [cotacaoDolar, setCotacaoDolar] = useState(5.15);
-  const [iofSpreadPercent, setIofSpreadPercent] = useState(4.7);
-  const [freteFornecedorUsd, setFreteFornecedorUsd] = useState(2);
+  const [custoProdutoUsd, setCustoProdutoUsd] = useState(0);
+  const [cotacaoDolar, setCotacaoDolar] = useState(0);
+  const [iofSpreadPercent, setIofSpreadPercent] = useState(0);
+  const [freteFornecedorUsd, setFreteFornecedorUsd] = useState(0);
   const [seguroUsd, setSeguroUsd] = useState(0);
 
-  const [impostoImportacaoPercent, setImpostoImportacaoPercent] = useState(20);
-  const [icmsPercent, setIcmsPercent] = useState(17);
+  const [impostoImportacaoPercent, setImpostoImportacaoPercent] = useState(0);
+  const [icmsPercent, setIcmsPercent] = useState(0);
   const [freteCliente, setFreteCliente] = useState(0);
-  const [embalagem, setEmbalagem] = useState(2.5);
-  const [custoOperacional, setCustoOperacional] = useState(3);
+  const [embalagem, setEmbalagem] = useState(0);
+  const [custoOperacional, setCustoOperacional] = useState(0);
 
-  const [taxaGatewayPercent, setTaxaGatewayPercent] = useState(4.99);
-  const [taxaGatewayFixa, setTaxaGatewayFixa] = useState(0.49);
-  const [taxaPlataformaPercent, setTaxaPlataformaPercent] = useState(2);
-  const [impostoVendaPercent, setImpostoVendaPercent] = useState(6);
-  const [perdasPercent, setPerdasPercent] = useState(3);
+  const [taxaGatewayPercent, setTaxaGatewayPercent] = useState(0);
+  const [taxaGatewayFixa, setTaxaGatewayFixa] = useState(0);
+  const [taxaPlataformaPercent, setTaxaPlataformaPercent] = useState(0);
+  const [impostoVendaPercent, setImpostoVendaPercent] = useState(0);
+  const [perdasPercent, setPerdasPercent] = useState(0);
 
-  const [cacDesejado, setCacDesejado] = useState(18);
-  const [margemLiquidaAlvo, setMargemLiquidaAlvo] = useState(18);
-  const [precoTeste, setPrecoTeste] = useState(119.9);
+  const [cacDesejado, setCacDesejado] = useState(0);
+  const [margemLiquidaAlvo, setMargemLiquidaAlvo] = useState(0);
+  const [precoTeste, setPrecoTeste] = useState(0);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number.isFinite(value) ? value : 0);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, Order } from '../types';
 import { ALIEN_SPECIES, INITIAL_GAMIFICATION_TASKS } from '../mockData';
-import { Coins, Globe, ShieldAlert, LogOut, Package, MapPin, Search, Zap } from 'lucide-react';
+import { Coins, Globe, ShieldAlert, LogOut, Package, MapPin, Search, Zap, Star, Calendar, Users } from 'lucide-react';
 import AuthWall from '../components/AuthWall';
 import { getRankByXP, getNextRank } from '../utils/gamification';
 import { fileToBase64 } from '../utils/imageUpload';
@@ -171,144 +171,169 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       {/* ─── TAB: MEU PERFIL ─── */}
       {activeTab === 'profile' && (
         <div className="profile-editor-container" style={{ marginTop: '24px' }}>
-          {/* Left: DNA Status Card */}
+          {/* Left: Gamification Dashboard */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Meu Progresso */}
             <div className="checkout-summary-box" style={{ width: '100%', position: 'static' }}>
-              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', fontWeight: 600 }}>Meu Progresso</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
                 <div 
                   className="sidebar-profile-avatar" 
-                  style={{ width: '80px', height: '80px', fontSize: '3.5rem', margin: '0 auto 12px auto', border: '3.5px solid var(--color-primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  style={{ width: '70px', height: '70px', fontSize: '3rem', flexShrink: 0, border: '3px solid var(--color-primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: '50%' }}
                   onClick={() => document.getElementById('custom-avatar-file-input')?.click()}
                 >
                   {userProfile.avatarUrl ? (
                     <img src={userProfile.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    renderEmojiAvatar(ALIEN_SPECIES.find(s => s.id === userProfile.species)?.avatar || '👽', '3.5rem')
+                    renderEmojiAvatar(ALIEN_SPECIES.find(s => s.id === userProfile.species)?.avatar || '👽', '3rem')
                   )}
                 </div>
-                <h3 className="neon-text" style={{ fontSize: '1.2rem' }}>{name || 'Visitante Cósmico'}</h3>
-                <span className="badge-neon" style={{ fontSize: '0.65rem', marginTop: '6px' }}>
-                  🧬 {ALIEN_SPECIES.find(s => s.id === userProfile.species)?.name}
-                </span>
-
-                {/* GAMIFICATION XP PROGRESS */}
-                <div style={{ marginTop: '24px', textAlign: 'left' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: getRankByXP(userProfile.xp || 0).color, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {getRankByXP(userProfile.xp || 0).icon} {getRankByXP(userProfile.xp || 0).name}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
-                      {userProfile.xp || 0} XP
-                    </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 700, color: getRankByXP(userProfile.xp || 0).color }}>{getRankByXP(userProfile.xp || 0).name}</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Nível {Math.floor((userProfile.xp || 0) / 1000) + 1}</span>
                   </div>
-                  
-                  {getNextRank(userProfile.xp || 0) ? (
-                    <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                      <div style={{ 
-                        position: 'absolute', left: 0, top: 0, height: '100%', 
-                        width: `${Math.min(100, Math.max(0, ((userProfile.xp || 0) / getNextRank(userProfile.xp || 0)!.xpRequired) * 100))}%`,
-                        backgroundColor: getRankByXP(userProfile.xp || 0).color,
-                        boxShadow: `0 0 10px ${getRankByXP(userProfile.xp || 0).color}`,
-                        transition: 'width 0.5s ease-out'
-                      }} />
-                    </div>
-                  ) : (
-                    <div style={{ width: '100%', height: '8px', backgroundColor: getRankByXP(userProfile.xp || 0).color, borderRadius: '4px', boxShadow: `0 0 10px ${getRankByXP(userProfile.xp || 0).color}` }} />
-                  )}
-                  
-                  {getNextRank(userProfile.xp || 0) && (
-                    <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '6px', textAlign: 'right' }}>
-                      Faltam {getNextRank(userProfile.xp || 0)!.xpRequired - (userProfile.xp || 0)} XP para {getNextRank(userProfile.xp || 0)!.name}
-                    </div>
-                  )}
-
-                  <button 
-                    style={{ 
-                      marginTop: '16px', 
-                      width: '100%', 
-                      fontSize: '0.85rem', 
-                      fontWeight: '800',
-                      padding: '12px', 
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{ALIEN_SPECIES.find(s => s.id === userProfile.species)?.name}</div>
+                </div>
+              </div>
+              
+              {/* GAMIFICATION XP PROGRESS */}
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', backgroundColor: 'rgba(168, 85, 247, 0.2)', color: '#a855f7', fontWeight: 700 }}>
+                    {getRankByXP(userProfile.xp || 0).icon} NÍVEL {Math.floor((userProfile.xp || 0) / 1000) + 1}
+                  </span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+                    {userProfile.xp || 0} / {getNextRank(userProfile.xp || 0)?.xpRequired || (userProfile.xp || 0)} XP
+                  </span>
+                </div>
+                
+                {getNextRank(userProfile.xp || 0) ? (
+                  <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ 
+                      position: 'absolute', left: 0, top: 0, height: '100%', 
+                      width: `${Math.min(100, Math.max(0, ((userProfile.xp || 0) / getNextRank(userProfile.xp || 0)!.xpRequired) * 100))}%`,
                       backgroundColor: 'var(--color-primary)',
-                      color: '#000000',
-                      border: 'none',
-                      borderRadius: 'var(--radius-md)',
-                      cursor: 'pointer',
-                      boxShadow: '0 0 15px rgba(69, 230, 39, 0.4)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      transition: 'all 0.2s ease'
-                    }} 
-                    onClick={() => setActiveTab('missions')}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                  >
-                    🚀 Central de Missões
-                  </button>
-                </div>
+                      boxShadow: `0 0 10px var(--color-primary)`,
+                      transition: 'width 0.5s ease-out'
+                    }} />
+                  </div>
+                ) : (
+                  <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--color-primary)', borderRadius: '4px', boxShadow: `0 0 10px var(--color-primary)` }} />
+                )}
+                
+                {getNextRank(userProfile.xp || 0) && (
+                  <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '8px', textAlign: 'center' }}>
+                    Faltam {getNextRank(userProfile.xp || 0)!.xpRequired - (userProfile.xp || 0)} XP <span style={{ color: 'var(--color-primary)' }}>para o Nível {Math.floor((userProfile.xp || 0) / 1000) + 2}</span>
+                  </div>
+                )}
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <Globe size={18} className="neon-text" />
-                  <div style={{ fontSize: '0.78rem' }}>
-                    <span style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.65rem' }}>Planeta Natal:</span>
-                    <strong>{homePlanet}</strong>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <Zap size={18} className="neon-text" style={{ color: 'var(--color-warning)' }} />
-                  <div style={{ fontSize: '0.78rem' }}>
-                    <span style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.65rem' }}>Aliencoins (Cashback):</span>
-                    <strong style={{ color: 'var(--color-warning)' }}>
-                      {userProfile.aliencoins || 0} AC 
-                      <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginLeft: '6px', fontWeight: 'normal' }}>
-                        (≈ R$ {((userProfile.aliencoins || 0) / 100).toFixed(2)})
-                      </span>
-                    </strong>
-                  </div>
-                </div>
-
-
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <ShieldAlert size={18} style={{ color: threat.color }} />
-                  <div style={{ fontSize: '0.78rem' }}>
-                    <span style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.65rem' }}>Ameaça Cósmica:</span>
-                    <strong style={{ color: threat.color }}>{threat.label}</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Logout button (mobile-friendly, inside card) */}
-              {userProfile.name && (
-                <button
-                  onClick={onLogout}
-                  style={{
-                    marginTop: '20px',
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '10px',
-                    background: 'rgba(255, 59, 48, 0.08)',
-                    border: '1px solid rgba(255, 59, 48, 0.25)',
-                    borderRadius: 'var(--radius-md)',
-                    color: 'var(--color-danger)',
-                    cursor: 'pointer',
-                    fontSize: '0.82rem',
-                    fontWeight: '600',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255, 59, 48, 0.15)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255, 59, 48, 0.08)')}
-                >
-                  <LogOut size={15} />
-                  Sair da Conta
-                </button>
-              )}
             </div>
+
+            {/* Aliencoins Card */}
+            <div className="checkout-summary-box" style={{ width: '100%', position: 'static', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Aliencoins</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-warning)', fontSize: '2rem', fontWeight: 800 }}>
+                <Coins size={28} /> {userProfile.aliencoins || 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>R$ {((userProfile.aliencoins || 0) / 100).toFixed(2).replace('.', ',')} de desconto</div>
+            </div>
+
+            {/* Como ganhar Aliencoins */}
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Como ganhar Aliencoins</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', cursor: 'pointer' }} onClick={() => setActiveTab('missions')}>Ver todas &gt;</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {INITIAL_GAMIFICATION_TASKS.filter(t => t.limit === 'daily' || t.limit === 'unlimited').slice(0, 4).map((task, index) => (
+                  <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: index < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ color: 'var(--color-primary)' }}>{task.id.includes('comp') ? <Package size={18} /> : task.id.includes('aval') ? <Star size={18} /> : task.id.includes('log') ? <Calendar size={18} /> : task.id.includes('share') ? <Users size={18} /> : <Coins size={18} />}</span>
+                      <span style={{ fontSize: '0.9rem' }}>{task.title}</span>
+                    </div>
+                    <div style={{ color: 'var(--color-warning)', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      +{task.rewardCoins || Math.floor((task.rewardXP || 0) / 10)} <Coins size={14} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Missões em Destaque */}
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Missões em Destaque</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', cursor: 'pointer' }} onClick={() => setActiveTab('missions')}>Ver todas &gt;</span>
+              </div>
+              <div className="checkout-summary-box" style={{ position: 'static', width: '100%', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid rgba(69, 230, 39, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                  <Zap size={24} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px' }}>Missão da Semana</div>
+                  <div style={{ fontSize: '0.85rem', lineHeight: 1.4, marginBottom: '8px' }}>Compre R$ 250,00 em produtos e ganhe 50 Aliencoins!</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}><span style={{ color: 'var(--color-primary)' }}>R$ 150,00</span> / R$ 250,00</div>
+                </div>
+                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(69, 230, 39, 0.1)', border: '1px solid var(--color-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', fontWeight: 800, flexShrink: 0 }}>
+                  <Coins size={16} /> 50
+                </div>
+              </div>
+            </div>
+
+            {/* Resgate suas Aliencoins Banner */}
+            <div style={{ 
+              background: 'linear-gradient(90deg, rgba(11, 15, 25, 1) 0%, rgba(20, 40, 20, 1) 100%)', 
+              border: '1px solid rgba(69, 230, 39, 0.3)', 
+              borderRadius: 'var(--radius-md)', 
+              padding: '16px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              position: 'relative',
+              overflow: 'hidden',
+              marginTop: '8px'
+            }}>
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <div style={{ color: 'var(--color-primary)', fontWeight: 800, fontSize: '1.05rem', marginBottom: '4px' }}>Resgate suas Aliencoins</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Descontos exclusivos esperando por você!</div>
+              </div>
+              <div style={{ position: 'relative', zIndex: 2, color: 'var(--color-warning)' }}>
+                <Coins size={40} />
+              </div>
+              <div style={{ position: 'absolute', right: '-10px', opacity: 0.1, transform: 'scale(1.5)', color: 'var(--color-warning)' }}>
+                <Coins size={100} />
+              </div>
+            </div>
+
+            {/* Logout button */}
+            {userProfile.name && (
+              <button
+                onClick={onLogout}
+                style={{
+                  marginTop: '12px',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '12px',
+                  background: 'rgba(255, 59, 48, 0.08)',
+                  border: '1px solid rgba(255, 59, 48, 0.25)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--color-danger)',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255, 59, 48, 0.15)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255, 59, 48, 0.08)')}
+              >
+                <LogOut size={16} />
+                Sair da Conta
+              </button>
+            )}
           </div>
 
           {/* Right: Profile Customizer Forms */}
@@ -587,7 +612,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
               />
               <button
                 className="btn-primary"
-                style={{ padding: '10px 20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                style={{ padding: '10px 20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', backgroundColor: 'var(--color-primary)', color: '#000000', border: 'none', borderRadius: 'var(--radius-md)', fontWeight: 'bold' }}
                 onClick={() => {
                   if (!trackingCode.trim()) {
                     addToast('Insira um código de rastreamento! 🛸', 'error');

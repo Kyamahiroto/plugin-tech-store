@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, Order } from '../types';
 import { ALIEN_SPECIES, INITIAL_GAMIFICATION_TASKS } from '../mockData';
-import { Coins, Globe, ShieldAlert, LogOut, Package, MapPin, Search, Zap, Star, Calendar, Users } from 'lucide-react';
+import { Coins, Globe, LogOut, Package, MapPin, Search, Zap, Star, Calendar, Users } from 'lucide-react';
 import AuthWall from '../components/AuthWall';
 import { getRankByXP, getNextRank } from '../utils/gamification';
 import { fileToBase64 } from '../utils/imageUpload';
@@ -50,17 +50,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const getThreatLevelText = (speciesId: string) => {
-    switch (speciesId) {
-      case 'custom': return { label: 'Visitante Desconhecido (Não identificado)', color: 'var(--color-warning)' };
-      case 'gray': return { label: 'Ameaça Média (Pode abduzir gados)', color: 'var(--color-warning)' };
-      case 'reptilian': return { label: 'Crítico (Controla bancos centrais terrestres)', color: 'var(--color-danger)' };
-      case 'human_girl_rocket':
-      case 'human_boy_rocket':
-        return { label: 'Inofensivo (Fácil de abduzir com feixes de luz)', color: 'var(--color-primary)' };
-      default: return { label: 'Inofensivo', color: 'var(--color-primary)' };
-    }
-  };
 
   const getWalletCreditsDefault = (speciesId: string) => {
     switch (speciesId) {
@@ -100,8 +89,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     setName(newName);
     onUpdateProfile({ ...userProfile, name: newName });
   };
-
-  const threat = getThreatLevelText(userProfile.species);
 
   const getStatusLabel = (status: string) => {
     switch (status) {

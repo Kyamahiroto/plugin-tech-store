@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Loja Plugin Tech</string>
+    <string name="title_activity_main">Loja Plugin Tech</string>
+    <string name="package_name">lojaplugin.store</string>
+    <string name="custom_url_scheme">lojaplugin.store</string>
+</resources>

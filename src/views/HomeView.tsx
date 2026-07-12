@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Gift, Heart, Headphones, Mouse, Keyboard, Gamepad, Cpu, Eye, Radio, Sparkles } from 'lucide-react';
 import { Product, Category, Banner, UserProfile, StoreSettings, Testimonial } from '../types';
 import HeroSlider from '../components/HeroSlider';
@@ -129,6 +129,44 @@ const HomeView: React.FC<HomeViewProps> = ({
 }) => {
   const [displayLocation, setDisplayLocation] = useState('Sintonizando sua base...');
   const [giftCardFilter, setGiftCardFilter] = useState<'all' | 'games' | 'apps'>('all');
+
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragMoved, setDragMoved] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!categoriesRef.current) return;
+    setIsDragging(true);
+    setDragMoved(false);
+    setStartX(e.pageX - categoriesRef.current.offsetLeft);
+    setScrollLeft(categoriesRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !categoriesRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - categoriesRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    if (Math.abs(walk) > 5) {
+      setDragMoved(true);
+    }
+    categoriesRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleCategoryClick = (slug: string | null) => {
+    if (dragMoved) return;
+    onSelectCategoryClick?.(slug as any);
+  };
 
   useEffect(() => {
     // 1. Try from user profile address
@@ -285,10 +323,18 @@ const HomeView: React.FC<HomeViewProps> = ({
 
       {/* Categories Horizontal Carousel */}
       <div className="categories-section">
-        <div className="categories-container">
+        <div 
+          className="categories-container"
+          ref={categoriesRef}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
           <div
             className={`category-pill active`}
-            onClick={() => onSelectCategoryClick?.(null as any)}
+            onClick={() => handleCategoryClick(null)}
           >
             <div className="category-icon-box">
               <Sparkles size={24} />
@@ -300,7 +346,7 @@ const HomeView: React.FC<HomeViewProps> = ({
             <div
               key={cat.id}
               className={`category-pill`}
-              onClick={() => onSelectCategoryClick?.(cat.slug)}
+              onClick={() => handleCategoryClick(cat.slug)}
             >
               <div className="category-icon-box">
                 {cat.imageUrl ? (
